@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openrouter/minimax/minimax-m2.5",
+  "provider": {
+    "openrouter": {
+      "type": "openai",
+      "models": {
+        "qwen/qwen3.6-plus": {
+          "name": "Qwen3.6 Plus",
+          "options": {
+            "reasoningEffort": "high"
+          }
+        },
+        "qwen/qwen3-coder-next": {
+          "name": "Qwen3 Coder Next",
+          "options": {
+            "provider": {
+              "order": ["Parasail"],
+              "allow_fallbacks": false
+            }
+          }
+        },
+        "minimax/minimax-m2.5:free": {
+          "name": "MiniMax: MiniMax M2.5 (free)"
+        },
+        "minimax/minimax-m2.5": {
+          "name": "MiniMax: MiniMax M2.5",
+          "options": {
+            "provider": {
+              "order": ["inceptron"],
+              "allow_fallbacks": false
+            }
+          }
+        }
+      }
+    }
+  }
+}
