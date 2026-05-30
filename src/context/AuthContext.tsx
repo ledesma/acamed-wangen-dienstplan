@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Employee } from '../types';
-import api from '../data/api';
+import api, { setCredentials, clearCredentials, getAuthHeader } from '../data/api';
 
 interface AuthContextType {
   user: User | null;
@@ -21,22 +21,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('AuthContext: loading from localStorage');
-    const savedUser = localStorage.getItem('acamed_user');
-    console.log('AuthContext: savedUser exists:', !!savedUser);
-    if (savedUser) {
-      const parsed = JSON.parse(savedUser);
-      console.log('AuthContext: parsed user:', parsed);
-      setUser(parsed);
-    }
-    // Load employees and set loading to false when done
-    api.getEmployees().then(emps => {
+    const restoreSession = async () => {
+      const authHeader = getAuthHeader();
+      if (authHeader) {
+        try {
+          const emps = await api.getEmployees();
+          const userStr = sessionStorage.getItem('acamed_user');
+          if (userStr) {
+            const userData = JSON.parse(userStr);
+            setUser(userData);
+            setEmployees(emps);
+            setIsLoading(false);
+            return;
+          }
+        } catch {}
+      }
+      const emps = await api.getEmployees();
       setEmployees(emps);
       setIsLoading(false);
-    });
+    };
+    restoreSession();
   }, []);
 
-  const login = async (email: string, _password: string) => {
+  const login = async (email: string, password: string) => {
     const emps = await api.getEmployees();
     const employee = emps.find((e: Employee) => e.email === email);
     
@@ -54,15 +61,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     setUser(userData);
     setEmployees(emps);
-    localStorage.setItem('acamed_user', JSON.stringify(userData));
+    setCredentials(email, password);
+    sessionStorage.setItem('acamed_user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('acamed_user');
+    clearCredentials();
+    sessionStorage.removeItem('acamed_user');
   };
 
-  const register = async (name: string, email: string, _password: string, role: 'admin' | 'user') => {
+  const register = async (name: string, email: string, password: string, role: 'admin' | 'user') => {
     const emps = await api.getEmployees();
     
     if (emps.some((e: Employee) => e.email === email)) {
@@ -83,8 +92,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     setUser(userData);
+    setCredentials(email, password);
+    sessionStorage.setItem('acamed_user', JSON.stringify(userData));
     setEmployees([...emps, newEmployee]);
-    localStorage.setItem('acamed_user', JSON.stringify(userData));
   };
 
   const refreshEmployees = async () => {

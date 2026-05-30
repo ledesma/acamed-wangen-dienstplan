@@ -10,7 +10,6 @@ import PersonalCalendar from './pages/PersonalCalendar';
 import AdminEmployees from './pages/AdminEmployees';
 import AdminShifts from './pages/AdminShifts';
 import AdminTasks from './pages/AdminTasks';
-import { initializeData } from './data/api';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, isLoading } = useAuth();

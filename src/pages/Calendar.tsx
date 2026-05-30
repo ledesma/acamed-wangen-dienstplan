@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable, closestCenter } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, CalendarEntry } from '../types';
@@ -159,7 +159,7 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 };
 
 const Calendar: React.FC = () => {
-  const { isAdmin, employees } = useAuth();
+  const { isAdmin, employees, refreshEmployees } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -179,6 +179,7 @@ const Calendar: React.FC = () => {
   const weekDates = getWeekDates(currentWeekStart);
 
   useEffect(() => {
+    refreshEmployees();
     loadData();
   }, []);
 
@@ -235,6 +236,7 @@ const Calendar: React.FC = () => {
       await api.createCalendarEntry(entryData);
     }
 
+    await refreshEmployees();
     await loadData();
   };
 
@@ -242,6 +244,7 @@ const Calendar: React.FC = () => {
     const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
     if (entry) {
       await api.updateCalendarEntry(entry.id, { shiftId: null, activeTaskIds: [] });
+      await refreshEmployees();
       await loadData();
     }
   };
@@ -255,6 +258,7 @@ const Calendar: React.FC = () => {
       : [...entry.activeTaskIds, taskId];
 
     await api.updateCalendarEntry(entry.id, { activeTaskIds });
+    await refreshEmployees();
     await loadData();
   };
 
@@ -324,6 +328,10 @@ const Calendar: React.FC = () => {
               {weekDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </span>
           </div>
+          <button className="btn btn-secondary" onClick={loadData}>
+            <RefreshCw size={18} />
+            Refresh
+          </button>
         </div>
 
         <div className="week-grid">

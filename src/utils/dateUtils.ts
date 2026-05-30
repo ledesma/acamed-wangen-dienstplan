@@ -3,7 +3,8 @@ export const formatDate = (date: Date): string => {
 };
 
 export const parseDate = (dateString: string): Date => {
-  return new Date(dateString + 'T00:00:00');
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
 };
 
 export const getWeekDates = (date: Date): Date[] => {
@@ -33,7 +34,9 @@ export const addWeeks = (date: Date, weeks: number): Date => {
 };
 
 export const isSameDay = (date1: Date, date2: Date): boolean => {
-  return formatDate(date1) === formatDate(date2);
+  return date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
 };
 
 export const isToday = (date: Date): boolean => {

@@ -4,9 +4,11 @@ import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react'
 import { Employee } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
+import { useAuth } from '../context/AuthContext';
 
 const AdminEmployees: React.FC = () => {
   const location = useLocation();
+  const { refreshEmployees } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -37,6 +39,7 @@ const AdminEmployees: React.FC = () => {
     }
     
     await loadEmployees();
+    await refreshEmployees();
     setShowModal(false);
     setEditingEmployee(null);
     setFormData({ name: '', email: '', role: 'user' });
@@ -56,6 +59,7 @@ const AdminEmployees: React.FC = () => {
     if (confirm('Are you sure you want to delete this employee?')) {
       await api.deleteEmployee(id);
       await loadEmployees();
+      await refreshEmployees();
     }
   };
 

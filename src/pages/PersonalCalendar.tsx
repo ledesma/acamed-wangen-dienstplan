@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, List, Download } from 'lucide-react';
+import { Calendar, List, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { CalendarEntry, Shift, Task } from '../types';
 import api from '../data/api';
@@ -9,7 +9,7 @@ import { generateICS } from '../utils/icsUtils';
 type ViewMode = 'month' | 'list';
 
 const PersonalCalendar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshEmployees } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [entries, setEntries] = useState<CalendarEntry[]>([]);
@@ -18,6 +18,7 @@ const PersonalCalendar: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    refreshEmployees();
     loadData();
   }, []);
 
@@ -112,6 +113,11 @@ const PersonalCalendar: React.FC = () => {
             <Calendar size={18} style={{ transform: 'rotate(-90deg)' }} />
           </button>
         </div>
+
+        <button className="btn btn-secondary" onClick={loadData}>
+          <RefreshCw size={18} />
+          Refresh
+        </button>
 
         <div style={{ display: 'flex', gap: 12 }}>
           <div className="view-toggle">
