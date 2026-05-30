@@ -34,6 +34,7 @@ export interface CalendarEntry {
   date: string;
   shiftId: string | null;
   activeTaskIds: string[];
+  comment?: string;
 }
 
 export interface User {

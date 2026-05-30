@@ -1,4 +1,7 @@
+import { getStore } from '@netlify/blobs';
+
 const STORAGE_KEY = 'acamed_calendar_data';
+const DAY_COMMENTS_KEY = 'acamed_day_comments';
 
 interface StorageData {
   employees: any[];
@@ -7,54 +10,86 @@ interface StorageData {
   calendarEntries: any[];
 }
 
-const defaultData: StorageData = {
-  employees: [],
-  shifts: [],
-  tasks: [],
-  calendarEntries: []
+interface DayComments {
+  [date: string]: string;
+}
+
+let blobStore: ReturnType<typeof getStore> | null = null;
+
+const getBlobStore = () => {
+  if (!blobStore) {
+    blobStore = getStore({
+      name: 'acamed-calendar',
+      siteID: import.meta.env.SITE_ID || 'dev'
+    });
+  }
+  return blobStore;
 };
 
-let initialized = false;
-
-export const initializeData = async (initialData: {
-  employees: any[];
-  shifts: any[];
-  tasks: any[];
-  calendarEntries: any[];
-}): Promise<void> => {
-  if (initialized) return;
-  
-  const stored = getStorageData();
-  
-  if (stored.employees.length === 0) {
-    stored.employees = initialData.employees;
-  }
-  if (stored.shifts.length === 0) {
-    stored.shifts = initialData.shifts;
-  }
-  if (stored.tasks.length === 0) {
-    stored.tasks = initialData.tasks;
-  }
-  if (stored.calendarEntries.length === 0) {
-    stored.calendarEntries = initialData.calendarEntries;
-  }
-  
-  setStorageData(stored);
-  initialized = true;
+const useBlobs = () => {
+  return import.meta.env.SITE_ID !== undefined;
 };
 
-const getStorageData = (): StorageData => {
+const getDayComments = async (): Promise<DayComments> => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      const parsed = JSON.parse(data);
-      console.log('API: Found data in localStorage:', Object.keys(parsed));
-      return parsed;
+    if (useBlobs()) {
+      const data = await getBlobStore().get(DAY_COMMENTS_KEY, { type: 'json' });
+      return data || {};
+    } else {
+      const data = localStorage.getItem(DAY_COMMENTS_KEY);
+      return data ? JSON.parse(data) : {};
     }
   } catch (e) {
-    console.error('Error reading from localStorage:', e);
+    console.error('Error reading day comments:', e);
+    return {};
   }
-  // Auto-initialize with default data
+};
+
+const setDayComments = async (comments: DayComments): Promise<void> => {
+  try {
+    if (useBlobs()) {
+      await getBlobStore().set(DAY_COMMENTS_KEY, JSON.stringify(comments));
+    } else {
+      localStorage.setItem(DAY_COMMENTS_KEY, JSON.stringify(comments));
+    }
+  } catch (e) {
+    console.error('Error writing day comments:', e);
+  }
+};
+
+export const dayCommentApi = {
+  async getComments() {
+    return getDayComments();
+  },
+
+  async setComment(date: string, comment: string) {
+    const comments = await getDayComments();
+    if (comment) {
+      comments[date] = comment;
+    } else {
+      delete comments[date];
+    }
+    await setDayComments(comments);
+    return comments;
+  }
+};
+
+const getStorageData = async (): Promise<StorageData> => {
+  try {
+    if (useBlobs()) {
+      const data = await getBlobStore().get(STORAGE_KEY, { type: 'json' });
+      if (data) return data;
+    } else {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (data) {
+        return JSON.parse(data);
+      }
+    }
+  } catch (e) {
+    console.error('Error reading from storage:', e);
+  }
+  
+  // Return default data
   const initialEmployees = [
     { id: 'emp-1', name: 'Dr. Sarah Johnson', email: 'sarah@example.com', role: 'admin', createdAt: '2024-01-01T00:00:00Z' },
     { id: 'emp-2', name: 'John Smith', email: 'john@example.com', role: 'user', createdAt: '2024-01-02T00:00:00Z' },
@@ -106,111 +141,115 @@ const getStorageData = (): StorageData => {
     calendarEntries: initialCalendarEntries
   };
   
-  setStorageData(defaultData);
+  await setStorageData(defaultData);
   return defaultData;
 };
 
-const setStorageData = (data: StorageData): void => {
+const setStorageData = async (data: StorageData): Promise<void> => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (useBlobs()) {
+      await getBlobStore().set(STORAGE_KEY, JSON.stringify(data));
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
   } catch (e) {
-    console.error('Error writing to localStorage:', e);
+    console.error('Error writing to storage:', e);
   }
 };
 
 export const api = {
   async getEmployees() {
-    const data = getStorageData();
+    const data = await getStorageData();
     return data.employees;
   },
 
   async createEmployee(employee: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const newEmployee = { ...employee, id: `emp-${Date.now()}`, createdAt: new Date().toISOString() };
     data.employees.push(newEmployee);
-    setStorageData(data);
+    await setStorageData(data);
     return newEmployee;
   },
 
   async updateEmployee(id: string, updates: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const index = data.employees.findIndex((e: any) => e.id === id);
     if (index !== -1) {
       data.employees[index] = { ...data.employees[index], ...updates };
-      setStorageData(data);
+      await setStorageData(data);
       return data.employees[index];
     }
     return null;
   },
 
   async deleteEmployee(id: string) {
-    const data = getStorageData();
+    const data = await getStorageData();
     data.employees = data.employees.filter((e: any) => e.id !== id);
     data.calendarEntries = data.calendarEntries.filter((e: any) => e.employeeId !== id);
-    setStorageData(data);
+    await setStorageData(data);
     return true;
   },
 
   async getShifts() {
-    const data = getStorageData();
+    const data = await getStorageData();
     return data.shifts;
   },
 
   async createShift(shift: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const newShift = { ...shift, id: `shift-${Date.now()}` };
     data.shifts.push(newShift);
-    setStorageData(data);
+    await setStorageData(data);
     return newShift;
   },
 
   async updateShift(id: string, updates: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const index = data.shifts.findIndex((s: any) => s.id === id);
     if (index !== -1) {
       data.shifts[index] = { ...data.shifts[index], ...updates };
-      setStorageData(data);
+      await setStorageData(data);
       return data.shifts[index];
     }
     return null;
   },
 
   async deleteShift(id: string) {
-    const data = getStorageData();
+    const data = await getStorageData();
     data.shifts = data.shifts.filter((s: any) => s.id !== id);
     data.calendarEntries = data.calendarEntries.map((e: any) => 
       e.shiftId === id ? { ...e, shiftId: null } : e
     );
-    setStorageData(data);
+    await setStorageData(data);
     return true;
   },
 
   async getTasks() {
-    const data = getStorageData();
+    const data = await getStorageData();
     return data.tasks;
   },
 
   async createTask(task: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const newTask = { ...task, id: `task-${Date.now()}` };
     data.tasks.push(newTask);
-    setStorageData(data);
+    await setStorageData(data);
     return newTask;
   },
 
   async updateTask(id: string, updates: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const index = data.tasks.findIndex((t: any) => t.id === id);
     if (index !== -1) {
       data.tasks[index] = { ...data.tasks[index], ...updates };
-      setStorageData(data);
+      await setStorageData(data);
       return data.tasks[index];
     }
     return null;
   },
 
   async deleteTask(id: string) {
-    const data = getStorageData();
+    const data = await getStorageData();
     data.tasks = data.tasks.filter((t: any) => t.id !== id);
     data.shifts = data.shifts.map((s: any) => ({
       ...s,
@@ -220,43 +259,43 @@ export const api = {
       ...e,
       activeTaskIds: e.activeTaskIds.filter((tid: string) => tid !== id)
     }));
-    setStorageData(data);
+    await setStorageData(data);
     return true;
   },
 
   async getCalendarEntries() {
-    const data = getStorageData();
+    const data = await getStorageData();
     return data.calendarEntries;
   },
 
   async createCalendarEntry(entry: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const newEntry = { ...entry, id: `entry-${Date.now()}` };
     data.calendarEntries.push(newEntry);
-    setStorageData(data);
+    await setStorageData(data);
     return newEntry;
   },
 
   async updateCalendarEntry(id: string, updates: any) {
-    const data = getStorageData();
+    const data = await getStorageData();
     const index = data.calendarEntries.findIndex((e: any) => e.id === id);
     if (index !== -1) {
       data.calendarEntries[index] = { ...data.calendarEntries[index], ...updates };
-      setStorageData(data);
+      await setStorageData(data);
       return data.calendarEntries[index];
     }
     return null;
   },
 
   async deleteCalendarEntry(id: string) {
-    const data = getStorageData();
+    const data = await getStorageData();
     data.calendarEntries = data.calendarEntries.filter((e: any) => e.id !== id);
-    setStorageData(data);
+    await setStorageData(data);
     return true;
   },
 
   async getCalendarEntry(employeeId: string, date: string) {
-    const data = getStorageData();
+    const data = await getStorageData();
     return data.calendarEntries.find(
       (e: any) => e.employeeId === employeeId && e.date === date
     );
