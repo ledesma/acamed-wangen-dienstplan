@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, List, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { CalendarEntry, Shift, Task } from '../types';
 import api from '../data/api';
 import { getMonthDates, formatDate, isToday, formatShiftTimes } from '../utils/dateUtils';
 import { generateICS } from '../utils/icsUtils';
+import { getTaskIcon } from '../utils/iconUtils';
 
 type ViewMode = 'month' | 'list';
 
 const PersonalCalendar: React.FC = () => {
+  const { t } = useTranslation();
   const { user, refreshEmployees } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -79,18 +82,6 @@ const PersonalCalendar: React.FC = () => {
     setCurrentDate(newDate);
   };
 
-  const getTaskIcon = (iconName: string) => {
-    const icons: Record<string, string> = {
-      Heart: '♥',
-      FileText: '📄',
-      AlertTriangle: '⚠',
-      Users: '👥',
-      GraduationCap: '🎓',
-      Clipboard: '📋'
-    };
-    return icons[iconName] || '•';
-  };
-
   if (loading) {
     return (
       <div className="loading">
@@ -116,7 +107,7 @@ const PersonalCalendar: React.FC = () => {
 
         <button className="btn btn-secondary" onClick={loadData}>
           <RefreshCw size={18} />
-          Refresh
+          {t('refresh')}
         </button>
 
         <div style={{ display: 'flex', gap: 12 }}>
@@ -126,20 +117,20 @@ const PersonalCalendar: React.FC = () => {
               onClick={() => setViewMode('month')}
             >
               <Calendar size={16} />
-              Month
+              {t('month')}
             </button>
             <button
               className={viewMode === 'list' ? 'active' : ''}
               onClick={() => setViewMode('list')}
             >
               <List size={16} />
-              List
+              {t('list')}
             </button>
           </div>
 
           <button className="btn btn-primary" onClick={handleDownloadICS}>
             <Download size={16} />
-            Export ICS
+            {t('exportICS')}
           </button>
         </div>
       </div>
@@ -176,8 +167,8 @@ const PersonalCalendar: React.FC = () => {
                           const task = tasks.find(t => t.id === taskId);
                           return task ? (
                             <span key={taskId} style={{ fontSize: '0.65rem' }}>
-                              {getTaskIcon(task.icon)}
-                            </span>
+                                <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                              </span>
                           ) : null;
                         })}
                       </div>
@@ -192,8 +183,8 @@ const PersonalCalendar: React.FC = () => {
         <div className="list-view">
           {sortedEntries.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-title">No scheduled shifts</div>
-              <p>Your calendar is empty</p>
+              <div className="empty-title">{t('noScheduledShifts')}</div>
+              <p>{t('yourCalendarIsEmpty')}</p>
             </div>
           ) : (
             sortedEntries.map(entry => {
@@ -228,7 +219,7 @@ const PersonalCalendar: React.FC = () => {
                         className="task-icon"
                         title={task.name}
                       >
-                        {getTaskIcon(task.icon)}
+                        <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
                       </div>
                     ))}
                   </div>

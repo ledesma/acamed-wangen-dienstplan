@@ -19,11 +19,14 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@netlify/blobs": "^10.7.9",
     "@netlify/edge-functions": "^3.0.8",
+    "i18next": "^26.3.0",
+    "i18next-browser-languagedetector": "^8.2.1",
     "ics": "^3.8.1",
     "lucide-react": "^0.454.0",
     "netlify-identity-widget": "^1.9.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.8",
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {

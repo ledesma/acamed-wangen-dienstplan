@@ -1,35 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react';
 import { Task } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
-
-const ICONS = [
-  'Heart', 'FileText', 'AlertTriangle', 'Users', 'GraduationCap',
-  'Clipboard', 'Clock', 'Stethoscope', 'Thermometer', 'Pill',
-  'Syringe', 'Activity', 'Brain', 'Eye', 'Bone'
-];
-
-const ICON_DISPLAYS: Record<string, string> = {
-  Heart: '♥',
-  FileText: '📄',
-  AlertTriangle: '⚠',
-  Users: '👥',
-  GraduationCap: '🎓',
-  Clipboard: '📋',
-  Clock: '🕐',
-  Stethoscope: '🩺',
-  Thermometer: '🌡️',
-  Pill: '💊',
-  Syringe: '💉',
-  Activity: '📊',
-  Brain: '🧠',
-  Eye: '👁️',
-  Bone: '🦴'
-};
+import { TASK_ICON_OPTIONS, getTaskIcon } from '../utils/iconUtils';
 
 const AdminTasks: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +55,7 @@ const AdminTasks: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this task?')) {
+    if (confirm(t('confirmDelete'))) {
       await api.deleteTask(id);
       await loadTasks();
     }
@@ -109,31 +88,31 @@ const AdminTasks: React.FC = () => {
             className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
           >
             <Users size={18} />
-            Employees
+            {t('employees')}
           </Link>
           <Link
             to="/admin/shifts"
             className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
           >
             <Calendar size={18} />
-            Shifts
+            {t('shifts')}
           </Link>
           <Link
             to="/admin/tasks"
             className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
           >
             <CheckSquare size={18} />
-            Tasks
+            {t('tasks')}
           </Link>
         </nav>
       </aside>
 
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
-          <h1 className="page-title">Tasks</h1>
+          <h1 className="page-title">{t('tasks')}</h1>
           <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
             <Plus size={18} />
-            Add Task
+            {t('addTask')}
           </button>
         </div>
 
@@ -142,7 +121,7 @@ const AdminTasks: React.FC = () => {
             <div key={task.id} className="card">
               <div className="card-header">
                 <div className="card-title">
-                  <span style={{ fontSize: '1.5rem' }}>{ICON_DISPLAYS[task.icon] || '•'}</span>
+                  <span className="material-symbols-rounded" style={{ fontSize: '1.5rem' }}>{getTaskIcon(task.icon)}</span>
                   {task.name}
                 </div>
                 <div className="table-actions">
@@ -162,7 +141,7 @@ const AdminTasks: React.FC = () => {
                   background: task.isActive ? 'var(--color-success)' : 'var(--color-surface-elevated)',
                   color: task.isActive ? 'white' : 'var(--color-text-secondary)'
                 }}>
-                  {task.isActive ? 'Active' : 'Inactive'}
+                  {task.isActive ? t('active') : t('inactive')}
                 </span>
               </div>
             </div>
@@ -171,12 +150,12 @@ const AdminTasks: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingTask ? 'Edit Task' : 'Add Task'}
+            title={editingTask ? t('editTask') : t('addTask')}
             onClose={() => { setShowModal(false); resetForm(); }}
           >
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="label">Name</label>
+                <label className="label">{t('taskName')}</label>
                 <input
                   type="text"
                   className="input"
@@ -187,9 +166,9 @@ const AdminTasks: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label className="label">Icon</label>
+                <label className="label">{t('taskIcon')}</label>
                 <div className="icon-picker">
-                  {ICONS.map(icon => (
+                  {TASK_ICON_OPTIONS.map(icon => (
                     <button
                       key={icon}
                       type="button"
@@ -197,7 +176,7 @@ const AdminTasks: React.FC = () => {
                       onClick={() => setFormData({ ...formData, icon })}
                       title={icon}
                     >
-                      {ICON_DISPLAYS[icon] || '•'}
+                      <span className="material-symbols-rounded">{getTaskIcon(icon)}</span>
                     </button>
                   ))}
                 </div>
@@ -211,16 +190,16 @@ const AdminTasks: React.FC = () => {
                     checked={formData.isActive}
                     onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
                   />
-                  Active
+                  {t('active')}
                 </label>
               </div>
 
               <div className="modal-footer" style={{ padding: 0, marginTop: 24, border: 'none' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingTask ? 'Save Changes' : 'Add Task'}
+                  {editingTask ? t('saveChanges') : t('addTask')}
                 </button>
               </div>
             </form>

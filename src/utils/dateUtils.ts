@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 export const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
@@ -44,10 +46,8 @@ export const isToday = (date: Date): boolean => {
 };
 
 export const getDayName = (date: Date, short = false): string => {
-  const days = short 
-    ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  return days[date.getDay()];
+  const { t } = useTranslation();
+  return short ? t(`day_short.${date.getDay()}`) : t(`day_long.${date.getDay()}`)
 };
 
 export const getMonthName = (date: Date): string => {

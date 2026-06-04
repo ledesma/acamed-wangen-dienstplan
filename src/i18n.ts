@@ -1,0 +1,166 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+const resources = {
+  de: {
+    translation: {
+      teamCalendar: 'Team-Kalender',
+      myCalendar: 'Mein Kalender',
+      admin: 'Verwaltung',
+      employees: 'Mitarbeiter',
+      shifts: 'Schichten',
+      tasks: 'Aufgaben',
+      addTask: 'Aufgabe hinzufügen',
+      editTask: 'Aufgabe bearbeiten',
+      taskName: 'Name',
+      taskIcon: 'Symbol',
+      active: 'Aktiv',
+      inactive: 'Inaktiv',
+      cancel: 'Abbrechen',
+      save: 'Speichern',
+      saveChanges: 'Änderungen speichern',
+      add: 'Hinzufügen',
+      delete: 'Löschen',
+      confirmDelete: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
+      noScheduledShifts: 'Keine geplanten Schichten',
+      yourCalendarIsEmpty: 'Ihr Kalender ist leer',
+      today: 'Heute',
+      refresh: 'Aktualisieren',
+      month: 'Monat',
+      list: 'Liste',
+      exportICS: 'ICS exportieren',
+      previousWeek: 'Vorherige Woche',
+      nextWeek: 'Nächste Woche',
+      editTasks: 'Aufgaben bearbeiten',
+      close: 'Schließen',
+      clear: 'Löschen',
+      dayComment: 'Tageskommentar',
+      comment: 'Kommentar',
+      addComment: 'Kommentar hinzufügen',
+      login: 'Anmelden',
+      logout: 'Abmelden',
+      register: 'Registrieren',
+      email: 'E-Mail',
+      password: 'Passwort',
+      confirmPassword: 'Passwort bestätigen',
+      name: 'Name',
+      color: 'Farbe',
+      times: 'Zeiten',
+      addTime: 'Zeit hinzufügen',
+      from: 'Von',
+      to: 'Bis',
+      defaultTasks: 'Standard-Aufgaben',
+      selectDefaultTasks: 'Standard-Aufgaben auswählen',
+      created: 'Erstellt',
+      updated: 'Aktualisiert',
+      days_short: {
+        0: 'So', 
+        1: 'Mo', 
+        2: 'Di', 
+        3: 'Mi', 
+        4: 'Do', 
+        5: 'Fr', 
+        6: 'Sa'
+      },
+      days_long: {
+        0: 'Sonntag', 
+        1: 'Montag', 
+        2: 'Dienstag', 
+        3: 'Mittwoch', 
+        4: 'Donnerstag', 
+        5: 'Freitag', 
+        6: 'Samstag'
+      }
+    }
+  },
+  en: {
+    translation: {
+      teamCalendar: 'Team Calendar',
+      myCalendar: 'My Calendar',
+      admin: 'Admin',
+      employees: 'Employees',
+      shifts: 'Shifts',
+      tasks: 'Tasks',
+      addTask: 'Add Task',
+      editTask: 'Edit Task',
+      taskName: 'Name',
+      taskIcon: 'Icon',
+      active: 'Active',
+      inactive: 'Inactive',
+      cancel: 'Cancel',
+      save: 'Save',
+      saveChanges: 'Save Changes',
+      add: 'Add',
+      delete: 'Delete',
+      confirmDelete: 'Are you sure you want to delete this task?',
+      noScheduledShifts: 'No scheduled shifts',
+      yourCalendarIsEmpty: 'Your calendar is empty',
+      today: 'Today',
+      refresh: 'Refresh',
+      month: 'Month',
+      list: 'List',
+      exportICS: 'Export ICS',
+      previousWeek: 'Previous Week',
+      nextWeek: 'Next Week',
+      editTasks: 'Edit Tasks',
+      close: 'Close',
+      clear: 'Clear',
+      dayComment: 'Day Comment',
+      comment: 'Comment',
+      addComment: 'Add Comment',
+      login: 'Login',
+      logout: 'Logout',
+      register: 'Register',
+      email: 'Email',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      name: 'Name',
+      color: 'Color',
+      times: 'Times',
+      addTime: 'Add Time',
+      from: 'From',
+      to: 'To',
+      defaultTasks: 'Default Tasks',
+      selectDefaultTasks: 'Select Default Tasks',
+      created: 'Created',
+      updated: 'Updated',
+      days_short: {
+        0: 'Sun', 
+        1: 'Mon', 
+        2: 'Tue', 
+        3: 'Wed', 
+        4: 'Thu', 
+        5: 'Fri', 
+        6: 'Sat'
+      },
+      days_long: {
+        0: 'Sunday', 
+        1: 'Monday', 
+        2: 'Tuesday', 
+        3: 'Wednesday', 
+        4: 'Thursday', 
+        5: 'Friday', 
+        6: 'Saturday'
+      }
+    }
+  }
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'de',
+    supportedLngs: ['de', 'en'],
+    interpolation: {
+      escapeValue: false
+    },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage']
+    }
+  });
+
+export default i18n;

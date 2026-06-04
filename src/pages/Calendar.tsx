@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable, closestCenter } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, CalendarEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
 import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes } from '../utils/dateUtils';
+import { getTaskIcon } from '../utils/iconUtils';
 
 const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shift, isAdmin }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -37,6 +39,7 @@ const DroppableCell: React.FC<{
   isAdmin: boolean;
   onToggleTask: (employeeId: string, date: string, taskId: string) => void;
 }> = ({ employeeId, date, entry, shift, tasks, isAdmin, onToggleTask }) => {
+  const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({
     id: `cell-${employeeId}-${date}`,
     data: { employeeId, date }
@@ -54,18 +57,6 @@ const DroppableCell: React.FC<{
 
   const handleTaskToggle = (taskId: string) => {
     onToggleTask(employeeId, date, taskId);
-  };
-
-  const getTaskIcon = (iconName: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      Heart: '♥',
-      FileText: '📄',
-      AlertTriangle: '⚠',
-      Users: '👥',
-      GraduationCap: '🎓',
-      Clipboard: '📋'
-    };
-    return icons[iconName] || '•';
   };
 
   return (
@@ -89,7 +80,7 @@ const DroppableCell: React.FC<{
                     className="task-icon"
                     title={task.name}
                   >
-                    {getTaskIcon(task.icon)}
+                    <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
                   </div>
                 ) : null;
               })}
@@ -101,10 +92,10 @@ const DroppableCell: React.FC<{
       {showTaskEditor && isAdmin && (
         <div className="task-editor-overlay" onClick={() => setShowTaskEditor(false)}>
           <div className="task-editor" onClick={e => e.stopPropagation()}>
-            <h3>Edit Tasks - {employeeId} / {date}</h3>
+            <h3>{t('editTasks')} - {employeeId} / {date}</h3>
             
             <div className="form-group">
-              <label className="label">Tasks</label>
+              <label className="label">{t('tasks')}</label>
               <div className="task-grid">
                 {tasks.map(task => (
                   <label key={task.id} className="task-item" onClick={(e) => e.preventDefault()}>
@@ -114,7 +105,7 @@ const DroppableCell: React.FC<{
                       checked={activeTasks.includes(task.id)}
                       onChange={() => handleTaskToggle(task.id)}
                     />
-                    <span>{getTaskIcon(task.icon)} {task.name}</span>
+                    <span><span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span> {task.name}</span>
                   </label>
                 ))}
               </div>
@@ -122,7 +113,7 @@ const DroppableCell: React.FC<{
             
             <div className="task-editor-actions">
               <button className="btn btn-secondary" onClick={() => setShowTaskEditor(false)}>
-                Close
+                {t('close')}
               </button>
             </div>
           </div>
@@ -159,6 +150,7 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 };
 
 const Calendar: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { isAdmin, employees, refreshEmployees } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -240,15 +232,6 @@ const Calendar: React.FC = () => {
     await loadData();
   };
 
-  const removeShift = async (employeeId: string, date: string) => {
-    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
-    if (entry) {
-      await api.updateCalendarEntry(entry.id, { shiftId: null, activeTaskIds: [] });
-      await refreshEmployees();
-      await loadData();
-    }
-  };
-
   const toggleTask = async (employeeId: string, date: string, taskId: string) => {
     const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
     if (!entry) return;
@@ -319,23 +302,23 @@ const Calendar: React.FC = () => {
               <ChevronLeft size={18} />
             </button>
             <button className="btn btn-secondary" onClick={goToToday}>
-              Today
+              {t('today')}
             </button>
             <button className="btn btn-secondary" onClick={() => navigateWeek(1)}>
               <ChevronRight size={18} />
             </button>
             <span className="calendar-title">
-              {weekDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              {weekDates[0].toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', { month: 'long', year: 'numeric' })}
             </span>
           </div>
           <button className="btn btn-secondary" onClick={loadData}>
             <RefreshCw size={18} />
-            Refresh
+            {t('refresh')}
           </button>
         </div>
 
         <div className="week-grid">
-          <div className="week-header-cell">Employee</div>
+          <div className="week-header-cell"></div>
           {weekDates.map(date => (
             <DayHeader 
               key={date.toISOString()} 

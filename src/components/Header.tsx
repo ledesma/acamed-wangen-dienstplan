@@ -1,47 +1,93 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon, LogOut, Calendar, User, Settings } from 'lucide-react';
+import { Sun, Moon, LogOut, Calendar, User, Settings, Menu, X, Globe } from 'lucide-react';
 
 const Header: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { user, logout, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+    setLangMenuOpen(false);
+  };
+
   return (
     <header className="header">
-      <div className="header-title">Acamed Calendar</div>
+      <div className="header-left">
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <div className="header-title">Acamed Calendar</div>
+      </div>
       
-      <nav className="header-nav">
+      <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <Link 
           to="/calendar" 
           className={isActive('/calendar') ? 'active' : ''}
+          onClick={() => setMobileMenuOpen(false)}
         >
           <Calendar size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          Team Calendar
+          {t('teamCalendar')}
         </Link>
         <Link 
           to="/my-calendar" 
           className={isActive('/my-calendar') ? 'active' : ''}
+          onClick={() => setMobileMenuOpen(false)}
         >
           <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          My Calendar
+          {t('myCalendar')}
         </Link>
         {isAdmin && (
           <Link 
             to="/admin/employees" 
             className={location.pathname.startsWith('/admin') ? 'active' : ''}
+            onClick={() => setMobileMenuOpen(false)}
           >
             <Settings size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-            Admin
+            {t('admin')}
           </Link>
         )}
       </nav>
 
       <div className="header-actions">
+        <div className="lang-menu-container">
+          <button 
+            className="btn-icon" 
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            title="Language"
+          >
+            <Globe size={20} />
+          </button>
+          {langMenuOpen && (
+            <div className="lang-menu">
+              <button 
+                className={i18n.language === 'de' ? 'active' : ''}
+                onClick={() => changeLanguage('de')}
+              >
+                Deutsch
+              </button>
+              <button 
+                className={i18n.language === 'en' ? 'active' : ''}
+                onClick={() => changeLanguage('en')}
+              >
+                English
+              </button>
+            </div>
+          )}
+        </div>
         <button 
           className="btn-icon" 
           onClick={toggleTheme}
@@ -56,7 +102,7 @@ const Header: React.FC = () => {
               {user.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
             </div>
             <span style={{ fontWeight: 500 }}>{user.name}</span>
-            <button className="btn-icon" onClick={logout} title="Logout">
+            <button className="btn-icon" onClick={logout} title={t('logout')}>
               <LogOut size={20} />
             </button>
           </div>
