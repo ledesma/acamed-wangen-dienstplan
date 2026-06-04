@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import api from '../data/api';
+import api, { getAuthHeader } from '../data/api';
 
 vi.mock('../data/api');
 
@@ -27,8 +27,9 @@ const mockEmployees = [
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    sessionStorage.clear();
     (api.getEmployees as ReturnType<typeof vi.fn>).mockResolvedValue(mockEmployees);
+    (getAuthHeader as ReturnType<typeof vi.fn>).mockReturnValue('Basic dGVzdA==');
   });
 
   it('should provide initial loading state', () => {
@@ -48,14 +49,14 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('loading')).toHaveTextContent('loading');
   });
 
-  it('should provide user from localStorage', () => {
+  it('should provide user from localStorage', async () => {
     const savedUser = {
       id: 'emp-1',
       email: 'admin@test.com',
       role: 'admin' as const,
       name: 'Admin User'
     };
-    localStorage.setItem('acamed_user', JSON.stringify(savedUser));
+    sessionStorage.setItem('acamed_user', JSON.stringify(savedUser));
 
     const TestComponent = () => {
       const { user } = useAuth();
@@ -70,7 +71,9 @@ describe('AuthContext', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByTestId('user')).toHaveTextContent('Admin User');
+    await waitFor(() => {
+      expect(screen.getByTestId('user')).toHaveTextContent('Admin User');
+    });
   });
 
   it('should login user with valid credentials', async () => {
@@ -145,7 +148,7 @@ describe('AuthContext', () => {
       role: 'admin' as const,
       name: 'Admin User'
     };
-    localStorage.setItem('acamed_user', JSON.stringify(savedUser));
+    sessionStorage.setItem('acamed_user', JSON.stringify(savedUser));
 
     const user = userEvent.setup();
 
@@ -178,14 +181,14 @@ describe('AuthContext', () => {
     });
   });
 
-  it('should identify admin users correctly', () => {
+  it('should identify admin users correctly', async () => {
     const savedUser = {
       id: 'emp-1',
       email: 'admin@test.com',
       role: 'admin' as const,
       name: 'Admin User'
     };
-    localStorage.setItem('acamed_user', JSON.stringify(savedUser));
+    sessionStorage.setItem('acamed_user', JSON.stringify(savedUser));
 
     const TestComponent = () => {
       const { isAdmin } = useAuth();
@@ -200,6 +203,8 @@ describe('AuthContext', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByTestId('isAdmin')).toHaveTextContent('admin');
+    await waitFor(() => {
+      expect(screen.getByTestId('isAdmin')).toHaveTextContent('admin');
+    });
   });
 });
