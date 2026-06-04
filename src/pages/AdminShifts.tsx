@@ -5,6 +5,7 @@ import { Shift, Task } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { formatShiftTimes } from '../utils/dateUtils';
+import { useTranslation } from 'react-i18next';
 
 const COLORS = [
   '#22c55e', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444',
@@ -12,6 +13,7 @@ const COLORS = [
 ];
 
 const AdminShifts: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -72,7 +74,7 @@ const AdminShifts: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this shift?')) {
+    if (confirm(t('confirmDeleteShift'))) {
       await api.deleteShift(id);
       await loadData();
     }
@@ -129,38 +131,38 @@ const AdminShifts: React.FC = () => {
   return (
     <div className="admin-layout">
       <aside className="sidebar">
-        <div className="sidebar-title">Administration</div>
+        <div className="sidebar-title">{t('admin')}</div>
         <nav className="sidebar-nav">
           <Link
             to="/admin/employees"
             className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
           >
             <Users size={18} />
-            Employees
+            {t('employees')}
           </Link>
           <Link
             to="/admin/shifts"
             className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
           >
             <Calendar size={18} />
-            Shifts
+            {t('shifts')}
           </Link>
           <Link
             to="/admin/tasks"
             className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
           >
             <CheckSquare size={18} />
-            Tasks
+            {t('tasks')}
           </Link>
         </nav>
       </aside>
 
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
-          <h1 className="page-title">Shifts</h1>
+          <h1 className="page-title">{t('shifts')}</h1>
           <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
             <Plus size={18} />
-            Add Shift
+            {t('addShift')}
           </button>
         </div>
 
@@ -187,7 +189,7 @@ const AdminShifts: React.FC = () => {
                   {formatShiftTimes(shift.times)}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                  {shift.defaultTaskIds.length} default tasks
+                  {t('defaultTasksCount', { count: shift.defaultTaskIds.length })}
                 </div>
               </div>
             </div>
@@ -196,12 +198,12 @@ const AdminShifts: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingShift ? 'Edit Shift' : 'Add Shift'}
+            title={editingShift ? t('editShift') : t('addShift')}
             onClose={() => { setShowModal(false); resetForm(); }}
           >
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="label">Name</label>
+                <label className="label">{t('name')}</label>
                 <input
                   type="text"
                   className="input"
@@ -212,7 +214,7 @@ const AdminShifts: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label className="label">Work Times</label>
+                <label className="label">{t('workTimes')}</label>
                 <div className="shift-times-list">
                   {formData.times.map((time, index) => (
                     <div key={index} className="shift-time-item">
@@ -222,7 +224,7 @@ const AdminShifts: React.FC = () => {
                         value={time.from}
                         onChange={e => updateTimeSlot(index, 'from', e.target.value)}
                       />
-                      <span>to</span>
+                      <span>{t('to')}</span>
                       <input
                         type="time"
                         className="input"
@@ -248,12 +250,12 @@ const AdminShifts: React.FC = () => {
                   style={{ marginBottom: 16 }}
                 >
                   <Plus size={16} />
-                  Add Time Slot
+                  {t('addTimeSlot')}
                 </button>
               </div>
 
               <div className="form-group">
-                <label className="label">Color</label>
+                <label className="label">{t('color')}</label>
                 <div className="color-picker">
                   {COLORS.map(color => (
                     <button
@@ -268,7 +270,7 @@ const AdminShifts: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label className="label">Default Active Tasks</label>
+                <label className="label">{t('defaultActiveTasks')}</label>
                 <div className="task-grid">
                   {tasks.map(task => (
                     <div
@@ -296,16 +298,16 @@ const AdminShifts: React.FC = () => {
                     checked={formData.isActive}
                     onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
                   />
-                  Active
+                  {t('active')}
                 </label>
               </div>
 
               <div className="modal-footer" style={{ padding: 0, marginTop: 24, border: 'none' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingShift ? 'Save Changes' : 'Add Shift'}
+                  {editingShift ? t('saveChanges') : t('addShift')}
                 </button>
               </div>
             </form>

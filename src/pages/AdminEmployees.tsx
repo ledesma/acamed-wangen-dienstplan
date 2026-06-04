@@ -5,8 +5,10 @@ import { Employee } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const AdminEmployees: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { refreshEmployees } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -56,7 +58,7 @@ const AdminEmployees: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this employee?')) {
+    if (confirm(t('confirmDeleteEmployee'))) {
       await api.deleteEmployee(id);
       await loadEmployees();
       await refreshEmployees();
@@ -80,48 +82,48 @@ const AdminEmployees: React.FC = () => {
   return (
     <div className="admin-layout">
       <aside className="sidebar">
-        <div className="sidebar-title">Administration</div>
+        <div className="sidebar-title">{t('admin')}</div>
         <nav className="sidebar-nav">
           <Link
             to="/admin/employees"
             className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
           >
             <Users size={18} />
-            Employees
+            {t('employees')}
           </Link>
           <Link
             to="/admin/shifts"
             className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
           >
             <Calendar size={18} />
-            Shifts
+            {t('shifts')}
           </Link>
           <Link
             to="/admin/tasks"
             className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
           >
             <CheckSquare size={18} />
-            Tasks
+            {t('tasks')}
           </Link>
         </nav>
       </aside>
 
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
-          <h1 className="page-title">Employees</h1>
+          <h1 className="page-title">{t('employees')}</h1>
           <button className="btn btn-primary" onClick={openNewModal}>
             <Plus size={18} />
-            Add Employee
+            {t('addEmployee')}
           </button>
         </div>
 
         <table className="table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
+              <th>{t('name')}</th>
+              <th>{t('email')}</th>
+              <th>{t('role')}</th>
+              <th>{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -144,7 +146,7 @@ const AdminEmployees: React.FC = () => {
                     background: emp.role === 'admin' ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
                     color: emp.role === 'admin' ? 'white' : 'var(--color-text-primary)'
                   }}>
-                    {emp.role}
+                    {t(emp.role)}
                   </span>
                 </td>
                 <td>
@@ -164,12 +166,12 @@ const AdminEmployees: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingEmployee ? 'Edit Employee' : 'Add Employee'}
+            title={editingEmployee ? t('editEmployee') : t('addEmployee')}
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="label">Name</label>
+                <label className="label">{t('name')}</label>
                 <input
                   type="text"
                   className="input"
@@ -179,7 +181,7 @@ const AdminEmployees: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="label">Email</label>
+                <label className="label">{t('email')}</label>
                 <input
                   type="email"
                   className="input"
@@ -189,22 +191,22 @@ const AdminEmployees: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="label">Role</label>
+                <label className="label">{t('role')}</label>
                 <select
                   className="select"
                   value={formData.role}
                   onChange={e => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' })}
                 >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
+                  <option value="user">{t('user')}</option>
+                  <option value="admin">{t('admin')}</option>
                 </select>
               </div>
               <div className="modal-footer" style={{ padding: 0, marginTop: 24, border: 'none' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingEmployee ? 'Save Changes' : 'Add Employee'}
+                  {editingEmployee ? t('saveChanges') : t('addEmployee')}
                 </button>
               </div>
             </form>
