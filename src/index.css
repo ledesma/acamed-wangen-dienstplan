@@ -1,7 +1,7 @@
 :root {
   --color-bg: #f8fafc;
   --color-surface: #ffffff;
-  --color-surface-elevated: #f1f5f9;
+  --color-surface-elevated: #e9eef3;
   --color-primary: #0ea5e9;
   --color-primary-hover: #0284c7;
   --color-secondary: #64748b;
@@ -873,7 +873,7 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: var(--color-border);
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -898,6 +898,16 @@ body {
 .month-cell.other-month {
   background: var(--color-surface-elevated);
   opacity: 0.5;
+}
+
+.month-cell.empty {
+  background: var(--color-bg);
+  opacity: 0.3;
+}
+
+.month-cell.weekend {
+  background: var(--color-surface-elevated);
+  opacity: 0.3;
 }
 
 .month-cell.today {

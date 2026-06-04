@@ -135,22 +135,24 @@ const PersonalCalendar: React.FC = () => {
 
       {viewMode === 'month' ? (
         <div className="month-grid">
-          {[0,1,2,3,4,5,6].map(day => (
+          {[1,2,3,4,5,6,0].map(day => (
             <div key={`header_${day}`} className="month-header">{t(`days_short.${day}`)}</div>
           ))}
           
-          {monthDates.map((date, index) => {
-            if (!date) return <div key={index} className="month-cell" />;
+          {monthDates.map((cell, index) => {
+            if (!cell.date) {
+              return <div key={index} className={`month-cell ${cell.isEmpty ? 'empty' : ''}`} />;
+            }
             
-            const dateStr = formatDate(date);
+            const dateStr = formatDate(cell.date);
             const dayEntries = userEntries.filter(e => e.date === dateStr);
             
             return (
               <div
                 key={index}
-                className={`month-cell ${isToday(date) ? 'today' : ''}`}
+                className={`month-cell ${isToday(cell.date) ? 'today' : ''} ${cell.date.getDay() == 0 || cell.date.getDay() == 6 ? 'weekend' : ''}`}
               >
-                <div className="month-date">{date.getDate()}</div>
+                <div className="month-date">{cell.date.getDate()}</div>
                 <div className="month-entries">
                   {dayEntries.map(entry => {
                     const shift = getShiftForEntry(entry);

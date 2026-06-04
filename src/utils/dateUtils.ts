@@ -54,27 +54,33 @@ export const getMonthName = (date: Date): string => {
 };
 
 
-export const getMonthDates = (date: Date): (Date | null)[] => {
+export const getMonthDates = (date: Date): { date: Date | null; isEmpty: boolean }[] => {
   const year = date.getFullYear();
   const month = date.getMonth();
   
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   
-  const startPadding = firstDay.getDay();
+  const startPadding = (firstDay.getDay() + 6) % 7;
   const totalDays = lastDay.getDate();
+  const totalCells = 42;
   
-  const dates: (Date | null)[] = [];
+  const result: { date: Date | null; isEmpty: boolean }[] = [];
   
   for (let i = 0; i < startPadding; i++) {
-    dates.push(null);
+    result.push({ date: null, isEmpty: true });
   }
   
   for (let i = 1; i <= totalDays; i++) {
-    dates.push(new Date(year, month, i));
+    result.push({ date: new Date(year, month, i), isEmpty: false });
   }
   
-  return dates;
+  const endPadding = (totalCells - result.length) % 7;
+  for (let i = 0; i < endPadding; i++) {
+    result.push({ date: null, isEmpty: true });
+  }
+  
+  return result;
 };
 
 export const formatTime = (time: string): string => {
