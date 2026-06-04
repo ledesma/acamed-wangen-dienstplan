@@ -50,8 +50,9 @@ export const getDayName = (date: Date, short = false): string => {
 };
 
 export const getMonthName = (date: Date): string => {
-  return date.toLocaleString('default', { month: 'long' });
+  return date.toLocaleString(i18n.language == "de" ? "de-CH" : "en-UK", { month: 'long' });
 };
+
 
 export const getMonthDates = (date: Date): (Date | null)[] => {
   const year = date.getFullYear();

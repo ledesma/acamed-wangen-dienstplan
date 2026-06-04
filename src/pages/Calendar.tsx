@@ -5,7 +5,7 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, us
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, CalendarEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
-import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes } from '../utils/dateUtils';
+import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes, getMonthName } from '../utils/dateUtils';
 import { getTaskIcon } from '../utils/iconUtils';
 
 const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shift, isAdmin }) => {
@@ -308,7 +308,7 @@ const Calendar: React.FC = () => {
               <ChevronRight size={18} />
             </button>
             <span className="calendar-title">
-              {weekDates[0].toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', { month: 'long', year: 'numeric' })}
+              {getMonthName(weekDates[0])} {weekDates[0].getFullYear().toString()}
             </span>
           </div>
           <button className="btn btn-secondary" onClick={loadData}>

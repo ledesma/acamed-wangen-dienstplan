@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, List, Download, RefreshCw } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { CalendarEntry, Shift, Task } from '../types';
 import api from '../data/api';
-import { getMonthDates, formatDate, isToday, formatShiftTimes } from '../utils/dateUtils';
+import { getMonthDates, formatDate, isToday, formatShiftTimes, getMonthName } from '../utils/dateUtils';
 import { generateICS } from '../utils/icsUtils';
 import { getTaskIcon } from '../utils/iconUtils';
 
@@ -95,13 +95,13 @@ const PersonalCalendar: React.FC = () => {
       <div className="personal-header">
         <div className="calendar-nav">
           <button className="btn btn-secondary" onClick={() => navigateMonth(-1)}>
-            <Calendar size={18} style={{ transform: 'rotate(90deg)' }} />
+            <ChevronLeft size={18} />
           </button>
           <span className="calendar-title">
-            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {getMonthName(currentDate)} {currentDate.getFullYear().toString()}
           </span>
           <button className="btn btn-secondary" onClick={() => navigateMonth(1)}>
-            <Calendar size={18} style={{ transform: 'rotate(-90deg)' }} />
+            <ChevronRight size={18} />
           </button>
         </div>
 
@@ -117,14 +117,12 @@ const PersonalCalendar: React.FC = () => {
               onClick={() => setViewMode('month')}
             >
               <Calendar size={16} />
-              {t('month')}
             </button>
             <button
               className={viewMode === 'list' ? 'active' : ''}
               onClick={() => setViewMode('list')}
             >
               <List size={16} />
-              {t('list')}
             </button>
           </div>
 
@@ -137,8 +135,8 @@ const PersonalCalendar: React.FC = () => {
 
       {viewMode === 'month' ? (
         <div className="month-grid">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="month-header">{day}</div>
+          {[0,1,2,3,4,5,6].map(day => (
+            <div key={`header_${day}`} className="month-header">{t(`days_short.${day}`)}</div>
           ))}
           
           {monthDates.map((date, index) => {
