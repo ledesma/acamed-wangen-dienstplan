@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 export const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
@@ -46,8 +46,7 @@ export const isToday = (date: Date): boolean => {
 };
 
 export const getDayName = (date: Date, short = false): string => {
-  const { t } = useTranslation();
-  return short ? t(`day_short.${date.getDay()}`) : t(`day_long.${date.getDay()}`)
+  return short ? i18n.t(`days_short.${date.getDay()}`) : i18n.t(`days_long.${date.getDay()}`);
 };
 
 export const getMonthName = (date: Date): string => {
