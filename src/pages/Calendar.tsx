@@ -297,23 +297,24 @@ const Calendar: React.FC = () => {
     >
       <div className="calendar-container">
         <div className="calendar-header">
+          <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
+            <RefreshCw size={18} />
+          </button>
+
           <div className="calendar-nav">
             <button className="btn btn-secondary" onClick={() => navigateWeek(-1)}>
               <ChevronLeft size={18} />
             </button>
-            <button className="btn btn-secondary" onClick={goToToday}>
-              {t('today')}
-            </button>
-            <button className="btn btn-secondary" onClick={() => navigateWeek(1)}>
-              <ChevronRight size={18} />
-            </button>
             <span className="calendar-title">
               {getMonthName(weekDates[0])} {weekDates[0].getFullYear().toString()}
             </span>
+            <button className="btn btn-secondary" onClick={() => navigateWeek(1)}>
+              <ChevronRight size={18} />
+            </button>
           </div>
-          <button className="btn btn-secondary" onClick={loadData}>
-            <RefreshCw size={18} />
-            {t('refresh')}
+
+          <button className="btn btn-secondary" onClick={goToToday}>
+            {t('today')}
           </button>
         </div>
 

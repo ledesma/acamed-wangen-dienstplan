@@ -93,6 +93,28 @@ const PersonalCalendar: React.FC = () => {
   return (
     <div className="personal-calendar">
       <div className="personal-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
+            <RefreshCw size={18} />
+          </button>
+          <div className="view-toggle">
+            <button
+              className={viewMode === 'month' ? 'active' : ''}
+              onClick={() => setViewMode('month')}
+              title={t('month')}
+            >
+              <Calendar size={16} />
+            </button>
+            <button
+              className={viewMode === 'list' ? 'active' : ''}
+              onClick={() => setViewMode('list')}
+              title={t('list')}
+            >
+              <List size={16} />
+            </button>
+          </div>
+        </div>
+
         <div className="calendar-nav">
           <button className="btn btn-secondary" onClick={() => navigateMonth(-1)}>
             <ChevronLeft size={18} />
@@ -105,30 +127,12 @@ const PersonalCalendar: React.FC = () => {
           </button>
         </div>
 
-        <button className="btn btn-secondary" onClick={loadData}>
-          <RefreshCw size={18} />
-          {t('refresh')}
-        </button>
-
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div className="view-toggle">
-            <button
-              className={viewMode === 'month' ? 'active' : ''}
-              onClick={() => setViewMode('month')}
-            >
-              <Calendar size={16} />
-            </button>
-            <button
-              className={viewMode === 'list' ? 'active' : ''}
-              onClick={() => setViewMode('list')}
-            >
-              <List size={16} />
-            </button>
-          </div>
-
-          <button className="btn btn-primary" onClick={handleDownloadICS}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={() => setCurrentDate(new Date())}>
+            {t('today')}
+          </button>
+          <button className="btn btn-primary" onClick={handleDownloadICS} title={t('exportICS')}>
             <Download size={16} />
-            {t('exportICS')}
           </button>
         </div>
       </div>
