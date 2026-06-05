@@ -1,73 +1,59 @@
-import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
+import type { Context } from '@netlify/functions';
 import { getStorageData, setStorageData, getUserFromHeader, requireAdmin } from './shared';
 
-const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
-  };
+const headers: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+};
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+export default async (req: Request, _context: Context) => {
+  const url = new URL(req.url);
+
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 200, headers });
   }
 
   try {
-    const user = await getUserFromHeader(event.headers.authorization);
-    const isReadOnly = event.httpMethod === 'GET';
+    const user = await getUserFromHeader(req.headers.get('authorization') ?? undefined);
+    const isReadOnly = req.method === 'GET';
 
     if (!isReadOnly) {
       if (!user) {
-        return {
-          statusCode: 401,
-          headers,
-          body: JSON.stringify({ error: 'Authentication required' })
-        };
+        return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401, headers });
       }
       requireAdmin(user);
     }
 
     const data = await getStorageData();
 
-    if (event.httpMethod === 'GET') {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(data.tasks)
-      };
+    if (req.method === 'GET') {
+      return new Response(JSON.stringify(data.tasks), { status: 200, headers });
     }
 
-    if (event.httpMethod === 'POST') {
-      const body = JSON.parse(event.body || '{}');
+    if (req.method === 'POST') {
+      const body = JSON.parse(await req.text() || '{}');
       const newTask = { ...body, id: `task-${Date.now()}` };
       data.tasks.push(newTask);
       await setStorageData(data);
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify(newTask)
-      };
+      return new Response(JSON.stringify(newTask), { status: 201, headers });
     }
 
-    if (event.httpMethod === 'PUT') {
-      const { id, ...updates } = JSON.parse(event.body || '{}');
+    if (req.method === 'PUT') {
+      const { id, ...updates } = JSON.parse(await req.text() || '{}');
       const index = data.tasks.findIndex((t: any) => t.id === id);
       if (index === -1) {
-        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Not found' }) };
+        return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
       }
       data.tasks[index] = { ...data.tasks[index], ...updates };
       await setStorageData(data);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(data.tasks[index])
-      };
+      return new Response(JSON.stringify(data.tasks[index]), { status: 200, headers });
     }
 
-    if (event.httpMethod === 'DELETE') {
-      const id = event.queryStringParameters?.id;
+    if (req.method === 'DELETE') {
+      const id = url.searchParams.get('id');
       if (!id) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: 'ID required' }) };
+        return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
       data.tasks = data.tasks.filter((t: any) => t.id !== id);
       data.shifts = data.shifts.map((s: any) => ({
@@ -79,21 +65,14 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
         activeTaskIds: e.activeTaskIds.filter((tid: string) => tid !== id)
       }));
       await setStorageData(data);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ success: true })
-      };
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });
   } catch (error: any) {
-    return {
-      statusCode: error.message.includes('Forbidden') ? 403 : 500,
-      headers,
-      body: JSON.stringify({ error: error.message })
-    };
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: error.message.includes('Forbidden') ? 403 : 500,
+      headers
+    });
   }
 };
-
-export { handler };

@@ -20,6 +20,11 @@ const isNetlifyEnv = (): boolean => {
   return typeof process !== 'undefined' && !!process.env.SITE_ID;
 };
 
+const getBlobsStore = async (storeName: string) => {
+  const { getStore } = await import('@netlify/blobs');
+  return getStore({name: storeName});
+};
+
 const getBlobsDir = (): string => {
   const cwd = typeof process !== 'undefined' ? process.cwd() : '/tmp';
   return join(cwd, '.netlify', 'blobs-serve', BLOB_STORE_NAME);
@@ -121,13 +126,13 @@ const getDefaultData = (): StorageData => {
 export const getStorageData = async (): Promise<StorageData> => {
   if (isNetlifyEnv()) {
     try {
-      const { getStore } = await import('@netlify/blobs');
-      const store = getStore({ name: BLOB_STORE_NAME });
+      const store = await getBlobsStore(BLOB_STORE_NAME);
       const data = await store.get(STORAGE_KEY, { type: 'json' });
       if (data) return data;
     } catch (e) {
       console.warn('Error reading from blobs:', e);
     }
+    return getDefaultData();
   }
   
   const storagePath = getStoragePath();
@@ -148,38 +153,37 @@ export const getStorageData = async (): Promise<StorageData> => {
 };
 
 export const setStorageData = async (data: StorageData): Promise<void> => {
-  const storagePath = getStoragePath();
-  
-  if (existsSync(storagePath)) {
-    try {
-      const existingData = JSON.parse(readFileSync(storagePath, 'utf-8'));
-      saveBackup(existingData);
-    } catch {}
-  }
-  
-  writeFileSync(storagePath, JSON.stringify(data));
-  
   if (isNetlifyEnv()) {
     try {
-      const { getStore } = await import('@netlify/blobs');
-      const store = getStore({ name: BLOB_STORE_NAME });
+      const store = await getBlobsStore(BLOB_STORE_NAME);
       await store.set(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.warn('Error writing to blobs:', e);
     }
+  } else {
+    const storagePath = getStoragePath();
+    
+    if (existsSync(storagePath)) {
+      try {
+        const existingData = JSON.parse(readFileSync(storagePath, 'utf-8'));
+        saveBackup(existingData);
+      } catch {}
+    }
+    
+    writeFileSync(storagePath, JSON.stringify(data));
   }
 };
 
 export const getDayComments = async (): Promise<DayComments> => {
   if (isNetlifyEnv()) {
     try {
-      const { getStore } = await import('@netlify/blobs');
-      const store = getStore({ name: BLOB_STORE_NAME });
+      const store = await getBlobsStore(BLOB_STORE_NAME);
       const data = await store.get(DAY_COMMENTS_KEY, { type: 'json' });
       if (data) return data;
     } catch (e) {
       console.warn('Error reading from blobs:', e);
     }
+    return {};
   }
   
   const commentsPath = getCommentsPath();
@@ -193,17 +197,16 @@ export const getDayComments = async (): Promise<DayComments> => {
 };
 
 export const setDayComments = async (comments: DayComments): Promise<void> => {
-  const commentsPath = getCommentsPath();
-  writeFileSync(commentsPath, JSON.stringify(comments));
-  
   if (isNetlifyEnv()) {
     try {
-      const { getStore } = await import('@netlify/blobs');
-      const store = getStore({ name: BLOB_STORE_NAME });
+      const store = await getBlobsStore(BLOB_STORE_NAME);
       await store.set(DAY_COMMENTS_KEY, JSON.stringify(comments));
     } catch (e) {
       console.warn('Error writing to blobs:', e);
     }
+  } else {
+    const commentsPath = getCommentsPath();
+    writeFileSync(commentsPath, JSON.stringify(comments));
   }
 };
 
