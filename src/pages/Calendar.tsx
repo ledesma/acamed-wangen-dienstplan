@@ -37,8 +37,9 @@ const DroppableCell: React.FC<{
   shift: Shift | undefined;
   tasks: Task[];
   isAdmin: boolean;
+  isWeekend: boolean;
   onToggleTask: (employeeId: string, date: string, taskId: string) => void;
-}> = ({ employeeId, date, entry, shift, tasks, isAdmin, onToggleTask }) => {
+}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onToggleTask }) => {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({
     id: `cell-${employeeId}-${date}`,
@@ -63,7 +64,7 @@ const DroppableCell: React.FC<{
     <>
       <div
         ref={setNodeRef}
-        className={`day-cell ${isOver ? 'drag-over' : ''} ${isToday(new Date(date + 'T00:00:00')) ? 'today' : ''}`}
+        className={`day-cell ${isOver ? 'drag-over' : ''} ${isWeekend ? 'weekend' : ''}`}
         onClick={handleClick}
       >
         {shift && (
@@ -338,10 +339,11 @@ const Calendar: React.FC = () => {
                 </div>
                 {employee.name}
               </div>
-              {weekDates.map(date => {
+              {weekDates.map((date, index) => {
                 const dateStr = formatDate(date);
                 const entry = getEntryForCell(employee.id, dateStr);
                 const shift = getShiftForEntry(entry);
+                const isWeekend = index >= 5;
                 
                 return (
                   <DroppableCell
@@ -352,6 +354,7 @@ const Calendar: React.FC = () => {
                     shift={shift}
                     tasks={tasks}
                     isAdmin={isAdmin}
+                    isWeekend={isWeekend}
                     onToggleTask={toggleTask}
                   />
                 );

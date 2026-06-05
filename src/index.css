@@ -462,6 +462,10 @@ body {
   border: 2px dashed var(--color-primary);
 }
 
+.day-cell.weekend {
+  background: rgba(128, 128, 128, 0.05);
+}
+
 .day-cell-content {
   height: 100%;
   border-radius: var(--radius-sm);
