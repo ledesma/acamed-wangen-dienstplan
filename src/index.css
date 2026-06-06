@@ -409,6 +409,9 @@ body {
   font-size: 0.875rem;
   position: relative;
 }
+.week-header-cell .title {
+  text-transform: uppercase;
+}
 
 .week-header-cell.today {
   background: var(--color-primary);
@@ -619,6 +622,29 @@ body {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+.legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.legend-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .legend-item {
@@ -628,12 +654,30 @@ body {
   padding: 8px 12px;
   background: var(--color-surface-elevated);
   border-radius: var(--radius-md);
-  cursor: grab;
-  transition: all 0.15s;
   flex-shrink: 0;
 }
 
-.legend-item:hover {
+.legend-item.small {
+  gap: 4px;
+  padding: 4px 10px;
+}
+
+.legend-item.small .legend-name {
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+
+.legend-item .material-symbols-rounded {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.interactable {
+  cursor: grab;
+  transition: all 0.15s;  
+}
+
+.legend-item.interactable:hover {
   transform: scale(1.02);
   box-shadow: var(--shadow-md);
 }
@@ -871,49 +915,6 @@ body {
   justify-content: space-between;
 }
 
-.shift-legend {
-  display: flex;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  overflow-x: auto;
-  flex-wrap: wrap;
-}
-
-.shift-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--color-surface-elevated);
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
-}
-
-.shift-legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.shift-legend-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.shift-legend-name {
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.shift-legend-time {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
 .view-toggle {
   display: flex;
   gap: 4px;
@@ -953,7 +954,7 @@ body {
   padding: 12px;
   text-align: center;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   background: var(--color-surface-elevated);
   color: var(--color-text-secondary);
@@ -1037,6 +1038,18 @@ body {
 .list-tasks {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
+}
+
+.month-entry-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.month-task-icons {
+  display: flex;
+  gap: 2px;
   flex-wrap: wrap;
 }
 

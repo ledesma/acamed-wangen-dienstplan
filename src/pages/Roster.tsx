@@ -28,7 +28,7 @@ const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shi
     <div
       ref={ref}
       draggable={isAdmin}
-      className={`legend-item ${!isAdmin ? 'legend-item-disabled' : ''}`}
+      className={`legend-item interactable ${!isAdmin ? 'legend-item-disabled' : ''}`}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -202,7 +202,7 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 }) => {
   return (
     <div className={`week-header-cell ${isToday(date) ? 'today' : ''}`}>
-      <div>{getDayName(date, true)}, {date.getDate()}</div>
+      <div className="title">{getDayName(date, true)}, {date.getDate()}</div>
       <div className="day-comment-text" title={dayComment}>
       <span>{dayComment}</span>
       {isAdmin && (
@@ -431,11 +431,28 @@ const Roster: React.FC = () => {
         </div>
 
         <div className="legend">
-          {shifts.filter(s => s.isActive).map(shift => (
-            <DraggableLegendItem key={shift.id} shift={shift} isAdmin={isAdmin} />
-          ))}
+          <div className="legend-section">
+            <div className="legend-label">{t('shifts')}</div>
+            <div className="legend-items">
+
+              {shifts.filter(s => s.isActive).map(shift => (
+                <DraggableLegendItem key={shift.id} shift={shift} isAdmin={isAdmin} />
+              ))}
+            </div>
+          </div>
+          <div className="legend-section">
+            <div className="legend-label">{t('tasks')}</div>
+            <div className="legend-items">
+              {tasks.map(task => (
+                <div key={task.id} className="legend-item small">
+                  <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                  <span className="legend-name">{task.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-       </div>
+      </div>
 
       {showCommentEditor && (
         <div className="task-editor-overlay">

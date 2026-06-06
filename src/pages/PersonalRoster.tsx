@@ -107,21 +107,26 @@ const PersonalRoster: React.FC = () => {
                 <div className="month-entries">
                   {dayEntries.map(entry => {
                     const shift = getShiftForEntry(entry);
+                    const entryTasks = getTasksForEntry(entry);
                     return shift ? (
-                      <div
-                        key={entry.id}
-                        className="month-entry"
-                        style={{ backgroundColor: shift.color }}
-                      >
-                        <span>{shift.name}</span>
-                        {entry.activeTaskIds.slice(0, 2).map(taskId => {
-                          const task = tasks.find(t => t.id === taskId);
-                          return task ? (
-                            <span key={taskId} style={{ fontSize: '0.65rem' }}>
-                                <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
-                              </span>
-                          ) : null;
-                        })}
+                      <div key={entry.id} className="month-entry-wrapper">
+                        <div
+                          className="month-entry"
+                          style={{ backgroundColor: shift.color }}
+                        >
+                          <span>{shift.name}</span>
+                        </div>
+                        <div className="month-task-icons">
+                          {entryTasks.map(task => (
+                            <div
+                              key={task.id}
+                              className="task-icon"
+                              title={task.name}
+                            >
+                              <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ) : null;
                   })}
@@ -181,17 +186,35 @@ const PersonalRoster: React.FC = () => {
         </div>
       )}
 
-      <div className="shift-legend">
-        {shifts.filter(s => s.isActive).map(shift => (
-          <div key={shift.id} className="shift-legend-item">
-            <div className="shift-legend-color" style={{ backgroundColor: shift.color }} />
-            <div className="shift-legend-info">
-              <span className="shift-legend-name">{shift.name}</span>
-              <span className="shift-legend-time">{formatShiftTimes(shift.times)}</span>
-            </div>
+      <div className="legend">
+        <div className="legend-section">
+          <div className="legend-label">{t('shifts')}</div>
+          <div className="legend-items">
+            {shifts.filter(s => s.isActive).map(shift => (
+              <div key={shift.id} className="legend-item">
+                <div className="legend-color" style={{ backgroundColor: shift.color }} />
+                <div className="legend-info">
+                  <span className="legend-name">{shift.name}</span>
+                  <span className="legend-time">{formatShiftTimes(shift.times)}</span>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="legend-section">
+          <div className="legend-label">{t('tasks')}</div>
+          <div className="legend-items">
+            {tasks.map(task => (
+              <div key={task.id} className="legend-item small">
+                <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                <span className="legend-name">{task.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
+
     </div>
 
   );
