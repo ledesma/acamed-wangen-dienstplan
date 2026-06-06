@@ -4,6 +4,16 @@
   functions = "netlify/functions"
 
 [[redirects]]
+  from = "/my-roster-ics"
+  to = "/.netlify/functions/my-roster-ics"
+  status = 200
+
+[[redirects]]
+  from = "/my-roster-ics/*"
+  to = "/.netlify/functions/my-roster-ics/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

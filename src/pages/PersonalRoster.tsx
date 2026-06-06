@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, ChevronLeft, ChevronRight, List, Download, RefreshCw } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { RosterEntry, Shift, Task } from '../types';
-import api from '../data/api';
+import { useRoster } from '../context/RosterContext';
+import { RosterEntry, Task } from '../types';
 import { getMonthDates, formatDate, isToday, formatShiftTimes, getMonthName } from '../utils/dateUtils';
-import { generateICS } from '../utils/icsUtils';
 import { getTaskIcon } from '../utils/iconUtils';
 
 type ViewMode = 'month' | 'list';
@@ -13,32 +12,15 @@ type ViewMode = 'month' | 'list';
 const PersonalRoster: React.FC = () => {
   const { t } = useTranslation();
   const { user, refreshEmployees } = useAuth();
+  const { rosterEntries, shifts, tasks, refresh } = useRoster();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [entries, setEntries] = useState<RosterEntry[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     refreshEmployees();
-    loadData();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    const [entriesData, shiftsData, tasksData] = await Promise.all([
-      api.getRosterEntries(),
-      api.getShifts(),
-      api.getTasks()
-    ]);
-    setEntries(entriesData);
-    setShifts(shiftsData);
-    setTasks(tasksData);
-    setLoading(false);
-  };
-
-  const userEntries = entries.filter(e => e.employeeId === user?.id);
+  const userEntries = rosterEntries.filter(e => e.employeeId === user?.id);
   const monthDates = getMonthDates(currentDate);
 
   const getShiftForEntry = (entry: RosterEntry) => {
@@ -54,47 +36,17 @@ const PersonalRoster: React.FC = () => {
 
   const sortedEntries = [...userEntries].sort((a, b) => a.date.localeCompare(b.date));
 
-  const handleDownloadICS = () => {
-    const userEntriesWithDetails = userEntries.map(entry => {
-      const shift = getShiftForEntry(entry);
-      const entryTasks = getTasksForEntry(entry);
-      return {
-        date: entry.date,
-        shiftName: shift?.name || 'No Shift',
-        shiftTimes: shift ? formatShiftTimes(shift.times) : '',
-        tasks: entryTasks.map(t => t.name).join(', ')
-      };
-    });
-    
-    const icsContent = generateICS(user?.name || 'User', userEntriesWithDetails);
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'roster.ics';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const navigateMonth = (direction: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + direction);
     setCurrentDate(newDate);
   };
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="personal-roster">
       <div className="personal-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
+          <button className="btn btn-secondary" onClick={refresh} title={t('refresh')}>
             <RefreshCw size={18} />
           </button>
           <div className="view-toggle">
@@ -127,14 +79,9 @@ const PersonalRoster: React.FC = () => {
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={() => setCurrentDate(new Date())}>
-            {t('today')}
-          </button>
-          <button className="btn btn-primary" onClick={handleDownloadICS} title={t('exportICS')}>
-            <Download size={16} />
-          </button>
-        </div>
+        <button className="btn btn-secondary" onClick={() => setCurrentDate(new Date())}>
+          {t('today')}
+        </button>
       </div>
 
       {viewMode === 'month' ? (
@@ -233,7 +180,20 @@ const PersonalRoster: React.FC = () => {
           )}
         </div>
       )}
+
+      <div className="shift-legend">
+        {shifts.filter(s => s.isActive).map(shift => (
+          <div key={shift.id} className="shift-legend-item">
+            <div className="shift-legend-color" style={{ backgroundColor: shift.color }} />
+            <div className="shift-legend-info">
+              <span className="shift-legend-name">{shift.name}</span>
+              <span className="shift-legend-time">{formatShiftTimes(shift.times)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
+
   );
 };
 

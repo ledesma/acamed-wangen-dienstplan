@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Calendar, User, Settings, Menu, X, Globe } from 'lucide-react';
+import { LogOut, Calendar, User, Settings, Menu, X, Globe, Download, Link2 } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -10,6 +10,9 @@ const Header: React.FC = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [icsCopySuccess, setIcsCopySuccess] = useState(false);
+
+  const icsUrl = user ? `${window.location.origin}/my-roster-ics?user=${user.id}` : '';
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -64,6 +67,22 @@ const Header: React.FC = () => {
       </nav>
 
       <div className="header-actions">
+        {user && icsUrl && (
+          <button 
+            className="btn-icon" 
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(icsUrl);
+                setIcsCopySuccess(true);
+                setTimeout(() => setIcsCopySuccess(false), 2000);
+              } catch {}
+            }}
+            title={icsCopySuccess ? 'Copied!' : 'Copy calendar subscription URL'}
+          >
+            {icsCopySuccess ? <Download size={20} /> : <Link2 size={20} />}
+          </button>
+        )}
+ 
         <div className="lang-menu-container">
           <button 
             className="btn-icon" 
