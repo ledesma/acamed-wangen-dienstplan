@@ -296,17 +296,17 @@ const Roster: React.FC = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="calendar-container">
-        <div className="calendar-header">
+      <div className="roster-container">
+        <div className="roster-header">
           <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
             <RefreshCw size={18} />
           </button>
 
-          <div className="calendar-nav">
+          <div className="roster-nav">
             <button className="btn btn-secondary" onClick={() => navigateWeek(-1)}>
               <ChevronLeft size={18} />
             </button>
-            <span className="calendar-title">
+            <span className="roster-title">
               {getMonthName(weekDates[0])} {weekDates[0].getFullYear().toString()}
             </span>
             <button className="btn btn-secondary" onClick={() => navigateWeek(1)}>

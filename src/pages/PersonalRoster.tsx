@@ -91,7 +91,7 @@ const PersonalRoster: React.FC = () => {
   }
 
   return (
-    <div className="personal-calendar">
+    <div className="personal-roster">
       <div className="personal-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
@@ -115,11 +115,11 @@ const PersonalRoster: React.FC = () => {
           </div>
         </div>
 
-        <div className="calendar-nav">
+        <div className="roster-nav">
           <button className="btn btn-secondary" onClick={() => navigateMonth(-1)}>
             <ChevronLeft size={18} />
           </button>
-          <span className="calendar-title">
+          <span className="roster-title">
             {getMonthName(currentDate)} {currentDate.getFullYear().toString()}
           </span>
           <button className="btn btn-secondary" onClick={() => navigateMonth(1)}>

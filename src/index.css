@@ -363,26 +363,26 @@ body {
   margin-top: 4px;
 }
 
-.calendar-container {
+.roster-container {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.calendar-header {
+.roster-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.calendar-nav {
+.roster-nav {
   display: flex;
   align-items: center;
   gap: 16px;
   margin: 0 auto;
 }
 
-.calendar-title {
+.roster-title {
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -833,7 +833,7 @@ body {
   }
 }
 
-.personal-calendar {
+.personal-roster {
   display: flex;
   flex-direction: column;
   gap: 24px;
