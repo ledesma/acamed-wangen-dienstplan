@@ -592,6 +592,21 @@ body {
   margin-top: 16px;
 }
 
+.task-editor-actions-right {
+  justify-content: flex-end;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.task-editor-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 12px 0;
+}
+
 .legend {
   display: flex;
   gap: 16px;

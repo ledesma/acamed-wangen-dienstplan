@@ -49,12 +49,14 @@ const DroppableCell: React.FC<{
   tasks: Task[];
   isAdmin: boolean;
   isWeekend: boolean;
-  onToggleTask: (employeeId: string, date: string, taskId: string) => void;
+  onSaveTasks: (employeeId: string, date: string, taskIds: string[]) => void;
   onShiftDrop: (employeeId: string, date: string, shiftId: string) => void;
-}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onToggleTask, onShiftDrop }) => {
+  onClearCell: (employeeId: string, date: string) => void;
+}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onSaveTasks, onShiftDrop, onClearCell }) => {
   const { t } = useTranslation();
   const [isOver, setIsOver] = useState(false);
-  const [showTaskEditor, setShowTaskEditor] = React.useState(false);
+  const [showTaskEditor, setShowTaskEditor] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
 
   const activeTasks = entry?.activeTaskIds || [];
 
@@ -65,7 +67,6 @@ const DroppableCell: React.FC<{
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    // Only clear if actually leaving the cell (not moving to a child)
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsOver(false);
     }
@@ -87,12 +88,27 @@ const DroppableCell: React.FC<{
 
   const handleClick = () => {
     if (isAdmin && entry?.shiftId) {
+      setSelectedTaskIds([...activeTasks]);
       setShowTaskEditor(true);
     }
   };
 
   const handleTaskToggle = (taskId: string) => {
-    onToggleTask(employeeId, date, taskId);
+    setSelectedTaskIds(prev =>
+      prev.includes(taskId)
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const handleSave = () => {
+    onSaveTasks(employeeId, date, selectedTaskIds);
+    setShowTaskEditor(false);
+  };
+
+  const handleClearCell = () => {
+    onClearCell(employeeId, date);
+    setShowTaskEditor(false);
   };
 
   return (
@@ -128,19 +144,23 @@ const DroppableCell: React.FC<{
       </div>
       
       {showTaskEditor && isAdmin && (
-        <div className="task-editor-overlay">
+        <div className="task-editor-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowTaskEditor(false);
+          }
+        }}>
           <div className="task-editor">
-            <h3>{t('editTasks')} - {employeeId} / {date}</h3>
+            <h3>{t('editCell')} - {employeeId} / {date}</h3>
             
             <div className="form-group">
               <label className="label">{t('tasks')}</label>
               <div className="task-grid">
                 {tasks.map(task => (
-                  <label key={task.id} className="task-item" onClick={(e) => e.preventDefault()}>
+                  <label key={task.id} className="task-item">
                     <input
                       type="checkbox"
                       className="checkbox"
-                      checked={activeTasks.includes(task.id)}
+                      checked={selectedTaskIds.includes(task.id)}
                       onChange={() => handleTaskToggle(task.id)}
                     />
                     <span><span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span> {task.name}</span>
@@ -148,11 +168,24 @@ const DroppableCell: React.FC<{
                 ))}
               </div>
             </div>
-            
-            <div className="task-editor-actions">
-              <button className="btn btn-secondary" onClick={() => setShowTaskEditor(false)}>
-                {t('close')}
-              </button>
+
+            <div className="task-editor-actions task-editor-actions-right">
+              <div className="btn-group">
+                <button className="btn btn-secondary" onClick={() => setShowTaskEditor(false)}>
+                  {t('close')}
+                </button>
+                <button className="btn btn-primary" onClick={handleSave}>
+                  {t('save')}
+                </button>
+              </div>
+            </div>
+            <hr className="task-editor-divider" />
+            <div className="task-editor-actions task-editor-actions-right">
+              <div className="btn-group">
+                <button className="btn btn-danger" onClick={handleClearCell}>
+                  {t('clearCell')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -266,6 +299,24 @@ const Roster: React.FC = () => {
     await loadData();
   };
 
+  const saveTasks = async (employeeId: string, date: string, taskIds: string[]) => {
+    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
+    if (!entry) return;
+
+    await api.updateRosterEntry(entry.id, { activeTaskIds: taskIds });
+    await refreshEmployees();
+    await loadData();
+  };
+
+  const clearCell = async (employeeId: string, date: string) => {
+    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
+    if (!entry) return;
+
+    await api.updateRosterEntry(entry.id, { shiftId: null, activeTaskIds: [] });
+    await refreshEmployees();
+    await loadData();
+  };
+
   const openCommentEditor = (date: string) => {
     setSelectedDate(date);
     setCommentText(dayComments[date] || '');
@@ -369,8 +420,9 @@ const Roster: React.FC = () => {
                     tasks={tasks}
                     isAdmin={isAdmin}
                     isWeekend={isWeekend}
-                    onToggleTask={toggleTask}
+                    onSaveTasks={saveTasks}
                     onShiftDrop={handleShiftDrop}
+                    onClearCell={clearCell}
                   />
                 );
               })}
