@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   de: {
     translation: {
+      dienstplan: 'Dienstplan',
       teamCalendar: 'Team-Kalender',
       myCalendar: 'Mein Kalender',
       admin: 'Verwaltung',
@@ -89,6 +90,7 @@ const resources = {
   },
   en: {
     translation: {
+      dutyRoster: 'Duty Roster',
       teamCalendar: 'Team Calendar',
       myCalendar: 'My Calendar',
       admin: 'Admin',

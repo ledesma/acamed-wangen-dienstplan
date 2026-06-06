@@ -30,7 +30,10 @@ const Header: React.FC = () => {
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <div className="header-title">Acamed Calendar</div>
+        <div className="header-brand">
+          <img src="/Logo.png" alt="" className="header-logo" />
+          <span className="header-title">{i18n.language === 'de' ? t('dienstplan') : t('dutyRoster')}</span>
+        </div>
       </div>
       
       <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
