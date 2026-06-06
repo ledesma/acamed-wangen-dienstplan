@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -121,13 +120,11 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <div className="app">
-          <AppRoutes />
-        </div>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <div className="app">
+        <AppRoutes />
+      </div>
+    </AuthProvider>
   );
 };
 

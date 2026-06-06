@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon, LogOut, Calendar, User, Settings, Menu, X, Globe } from 'lucide-react';
+import { LogOut, Calendar, User, Settings, Menu, X, Globe } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout, isAdmin } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -91,14 +89,6 @@ const Header: React.FC = () => {
             </div>
           )}
         </div>
-        <button 
-          className="btn-icon" 
-          onClick={toggleTheme}
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-
         {user && (
           <div className="user-menu">
             <div className="avatar">
