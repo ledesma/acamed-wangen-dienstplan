@@ -1,14 +1,14 @@
-# Acamed Calendar
+# Acamed Roster
 
-A modern team calendar application with drag-and-drop shift management, personal calendar views, and ICS export functionality.
+A modern team roster application with drag-and-drop shift management, personal roster views, and ICS export functionality.
 
 ## Features
 
-- **Team Calendar**: Week view with employee rows and day columns
+- **Team Roster**: Week view with employee rows and day columns
 - **Shift Management**: Drag shifts from legend to assign to employees
-- **Task Icons**: Visual task indicators in calendar cells
-- **Personal Calendar**: Month and list views for individual employees
-- **ICS Export**: Download calendar as .ics file
+- **Task Icons**: Visual task indicators in roster cells
+- **Personal Roster**: Month and list views for individual employees
+- **ICS Export**: Download roster as .ics file
 - **Dark/Light Mode**: Theme toggle with system preference detection
 - **Admin Panel**: Manage employees, shifts, and tasks
 
@@ -68,14 +68,14 @@ npm test
 - **Employees**: Name, email, role (admin/user)
 - **Shifts**: Name, work times, color, default tasks
 - **Tasks**: Name, icon, active status
-- **Calendar Entries**: Employee + date + shift + active tasks
+- **Roster Entries**: Employee + date + shift + active tasks
 
 ## Routes
 
 - `/login` - Login page
 - `/register` - Registration page
-- `/calendar` - Team calendar (week view)
-- `/my-calendar` - Personal calendar (month/list)
+- `/roster` - Team roster (week view)
+- `/my-roster` - Personal roster (month/list)
 - `/admin/employees` - Employee management
 - `/admin/shifts` - Shift management
 - `/admin/tasks` - Task management

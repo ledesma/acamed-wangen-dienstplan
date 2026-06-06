@@ -14,4 +14,4 @@
   targetPort = 5173
 
 [[blob_stores]]
-name = "acamed-calendar"
+name = "acamed-roster"

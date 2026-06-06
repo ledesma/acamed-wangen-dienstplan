@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronLeft, ChevronRight, List, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { CalendarEntry, Shift, Task } from '../types';
+import { RosterEntry, Shift, Task } from '../types';
 import api from '../data/api';
 import { getMonthDates, formatDate, isToday, formatShiftTimes, getMonthName } from '../utils/dateUtils';
 import { generateICS } from '../utils/icsUtils';
@@ -10,12 +10,12 @@ import { getTaskIcon } from '../utils/iconUtils';
 
 type ViewMode = 'month' | 'list';
 
-const PersonalCalendar: React.FC = () => {
+const PersonalRoster: React.FC = () => {
   const { t } = useTranslation();
   const { user, refreshEmployees } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [entries, setEntries] = useState<CalendarEntry[]>([]);
+  const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ const PersonalCalendar: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     const [entriesData, shiftsData, tasksData] = await Promise.all([
-      api.getCalendarEntries(),
+      api.getRosterEntries(),
       api.getShifts(),
       api.getTasks()
     ]);
@@ -41,12 +41,12 @@ const PersonalCalendar: React.FC = () => {
   const userEntries = entries.filter(e => e.employeeId === user?.id);
   const monthDates = getMonthDates(currentDate);
 
-  const getShiftForEntry = (entry: CalendarEntry) => {
+  const getShiftForEntry = (entry: RosterEntry) => {
     if (!entry.shiftId) return null;
     return shifts.find(s => s.id === entry.shiftId);
   };
 
-  const getTasksForEntry = (entry: CalendarEntry) => {
+  const getTasksForEntry = (entry: RosterEntry) => {
     return entry.activeTaskIds
       .map(id => tasks.find(t => t.id === id))
       .filter(Boolean) as Task[];
@@ -71,7 +71,7 @@ const PersonalCalendar: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'calendar.ics';
+    a.download = 'roster.ics';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -188,7 +188,7 @@ const PersonalCalendar: React.FC = () => {
           {sortedEntries.length === 0 ? (
             <div className="empty-state">
               <div className="empty-title">{t('noScheduledShifts')}</div>
-              <p>{t('yourCalendarIsEmpty')}</p>
+              <p>{t('yourRosterIsEmpty')}</p>
             </div>
           ) : (
             sortedEntries.map(entry => {
@@ -237,4 +237,4 @@ const PersonalCalendar: React.FC = () => {
   );
 };
 
-export default PersonalCalendar;
+export default PersonalRoster;

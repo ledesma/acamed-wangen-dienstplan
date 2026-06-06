@@ -1,4 +1,4 @@
-import { Employee, Shift, Task, CalendarEntry } from '../types';
+import { Employee, Shift, Task, RosterEntry } from '../types';
 
 export const initialEmployees: Employee[] = [
   {
@@ -81,7 +81,7 @@ const getDateString = (daysOffset: number): string => {
   return date.toISOString().split('T')[0];
 };
 
-export const initialCalendarEntries: CalendarEntry[] = [
+export const initialRosterEntries: RosterEntry[] = [
   {
     id: 'entry-1',
     employeeId: 'emp-1',

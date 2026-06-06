@@ -127,30 +127,30 @@ export const api = {
     return apiFetch(`/tasks?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  async getCalendarEntries() {
-    return apiFetch('/calendar-entries', { method: 'GET' });
+  async getRosterEntries() {
+    return apiFetch('/roster-entries', { method: 'GET' });
   },
 
-  async createCalendarEntry(entry: any) {
-    return apiFetch('/calendar-entries', {
+  async createRosterEntry(entry: any) {
+    return apiFetch('/roster-entries', {
       method: 'POST',
       body: JSON.stringify(entry)
     });
   },
 
-  async updateCalendarEntry(id: string, updates: any) {
-    return apiFetch('/calendar-entries', {
+  async updateRosterEntry(id: string, updates: any) {
+    return apiFetch('/roster-entries', {
       method: 'PUT',
       body: JSON.stringify({ id, ...updates })
     });
   },
 
-  async deleteCalendarEntry(id: string) {
-    return apiFetch(`/calendar-entries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  async deleteRosterEntry(id: string) {
+    return apiFetch(`/roster-entries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  async getCalendarEntry(employeeId: string, date: string) {
-    const entries = await apiFetch('/calendar-entries', { method: 'GET' });
+  async getRosterEntry(employeeId: string, date: string) {
+    const entries = await apiFetch('/roster-entries', { method: 'GET' });
     return entries.find(
       (e: any) => e.employeeId === employeeId && e.date === date
     );

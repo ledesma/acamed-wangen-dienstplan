@@ -60,7 +60,7 @@ export default async (req: Request, _context: Context) => {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
       data.employees = data.employees.filter((e: any) => e.id !== id);
-      data.calendarEntries = data.calendarEntries.filter((e: any) => e.employeeId !== id);
+      data.rosterEntries = data.rosterEntries.filter((e: any) => e.employeeId !== id);
       await setStorageData(data);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }

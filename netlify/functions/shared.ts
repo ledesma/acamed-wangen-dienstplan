@@ -1,15 +1,15 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-const STORAGE_KEY = 'acamed_calendar_data';
+const STORAGE_KEY = 'acamed_roster_data';
 const DAY_COMMENTS_KEY = 'acamed_day_comments';
-const BLOB_STORE_NAME = 'acamed-calendar';
+const BLOB_STORE_NAME = 'acamed-roster';
 
 interface StorageData {
   employees: any[];
   shifts: any[];
   tasks: any[];
-  calendarEntries: any[];
+  rosterEntries: any[];
 }
 
 interface DayComments {
@@ -101,7 +101,7 @@ const getDefaultData = (): StorageData => {
     { id: 'task-6', name: 'Admin', icon: 'Clipboard', isActive: true }
   ];
   
-  const initialCalendarEntries = [
+  const initialRosterEntries = [
     { id: 'entry-1', employeeId: 'emp-1', date: getDateString(-2), shiftId: 'shift-1', activeTaskIds: ['task-1', 'task-2'] },
     { id: 'entry-2', employeeId: 'emp-2', date: getDateString(-2), shiftId: 'shift-2', activeTaskIds: ['task-2', 'task-3'] },
     { id: 'entry-3', employeeId: 'emp-1', date: getDateString(-1), shiftId: 'shift-3', activeTaskIds: ['task-1'] },
@@ -119,7 +119,7 @@ const getDefaultData = (): StorageData => {
     employees: initialEmployees,
     shifts: initialShifts,
     tasks: initialTasks,
-    calendarEntries: initialCalendarEntries
+    rosterEntries: initialRosterEntries
   };
 };
 

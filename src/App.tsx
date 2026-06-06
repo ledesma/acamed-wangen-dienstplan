@@ -4,8 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Calendar from './pages/Calendar';
-import PersonalCalendar from './pages/PersonalCalendar';
+import Roster from './pages/Roster';
+import PersonalRoster from './pages/PersonalRoster';
 import AdminEmployees from './pages/AdminEmployees';
 import AdminShifts from './pages/AdminShifts';
 import AdminTasks from './pages/AdminTasks';
@@ -28,7 +28,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean 
   }
 
   if (adminOnly && user?.role !== 'admin') {
-    return <Navigate to="/calendar" replace />;
+    return <Navigate to="/roster" replace />;
   }
 
   return <>{children}</>;
@@ -46,7 +46,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/calendar" replace />;
+    return <Navigate to="/roster" replace />;
   }
 
   return <>{children}</>;
@@ -58,21 +58,21 @@ const AppRoutes: React.FC = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
-        path="/calendar"
+        path="/roster"
         element={
           <ProtectedRoute>
             <Layout>
-              <Calendar />
+              <Roster />
             </Layout>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/my-calendar"
+        path="/my-roster"
         element={
           <ProtectedRoute>
             <Layout>
-              <PersonalCalendar />
+              <PersonalRoster />
             </Layout>
           </ProtectedRoute>
         }
@@ -113,7 +113,7 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/calendar" replace />} />
+      <Route path="*" element={<Navigate to="/roster" replace />} />
     </Routes>
   );
 };

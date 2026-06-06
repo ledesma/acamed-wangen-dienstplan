@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable, closestCenter } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
-import { Shift, Task, CalendarEntry } from '../types';
+import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
 import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes, getMonthName } from '../utils/dateUtils';
 import { getTaskIcon } from '../utils/iconUtils';
@@ -33,7 +33,7 @@ const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shi
 const DroppableCell: React.FC<{
   employeeId: string;
   date: string;
-  entry: CalendarEntry | undefined;
+  entry: RosterEntry | undefined;
   shift: Shift | undefined;
   tasks: Task[];
   isAdmin: boolean;
@@ -150,8 +150,8 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
   );
 };
 
-const Calendar: React.FC = () => {
-  const { t, i18n } = useTranslation();
+const Roster: React.FC = () => {
+  const { t } = useTranslation();
   const { isAdmin, employees, refreshEmployees } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -161,7 +161,7 @@ const Calendar: React.FC = () => {
   });
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [entries, setEntries] = useState<CalendarEntry[]>([]);
+  const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [dayComments, setDayComments] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -181,7 +181,7 @@ const Calendar: React.FC = () => {
     const [shiftsData, tasksData, entriesData, commentsData] = await Promise.all([
       api.getShifts(),
       api.getTasks(),
-      api.getCalendarEntries(),
+      api.getRosterEntries(),
       dayCommentApi.getComments()
     ]);
     setShifts(shiftsData);
@@ -224,9 +224,9 @@ const Calendar: React.FC = () => {
     };
 
     if (existingEntry) {
-      await api.updateCalendarEntry(existingEntry.id, entryData);
+      await api.updateRosterEntry(existingEntry.id, entryData);
     } else {
-      await api.createCalendarEntry(entryData);
+      await api.createRosterEntry(entryData);
     }
 
     await refreshEmployees();
@@ -241,7 +241,7 @@ const Calendar: React.FC = () => {
       ? entry.activeTaskIds.filter(id => id !== taskId)
       : [...entry.activeTaskIds, taskId];
 
-    await api.updateCalendarEntry(entry.id, { activeTaskIds });
+    await api.updateRosterEntry(entry.id, { activeTaskIds });
     await refreshEmployees();
     await loadData();
   };
@@ -275,7 +275,7 @@ const Calendar: React.FC = () => {
     return entries.find(e => e.employeeId === employeeId && e.date === date);
   };
 
-  const getShiftForEntry = (entry: CalendarEntry | undefined) => {
+  const getShiftForEntry = (entry: RosterEntry | undefined) => {
     if (!entry?.shiftId) return undefined;
     return shifts.find(s => s.id === entry.shiftId);
   };
@@ -416,4 +416,4 @@ const Calendar: React.FC = () => {
   );
 };
 
-export default Calendar;
+export default Roster;

@@ -1,7 +1,7 @@
-# Team Calendar Application Specification
+# Team Roster Application Specification
 
 ## Project Overview
-- **Project Name**: Acamed Calendar
+- **Project Name**: Acamed Roster
 - **Type**: Web Application (SPA)
 - **Core Functionality**: Editable team calendar with drag-and-drop shift assignment, task management, and personal calendar views
 - **Target Users**: Healthcare/team managers and employees
@@ -54,7 +54,7 @@
 }
 ```
 
-### CalendarEntry
+### RosterEntry
 ```typescript
 {
   id: string;
@@ -111,7 +111,7 @@
 #### Main Layout
 - **Header**: Fixed top, 64px height
   - Logo/Title on left
-  - Navigation center (Calendar, My Calendar, Admin)
+  - Navigation center (Roster, My Roster, Admin)
   - User menu + theme toggle on right
 - **Content**: Below header, full width with max-width 1440px, centered
 - **Sidebar** (Admin): 280px width, collapsible
@@ -128,7 +128,7 @@
 - **Shifts View**: List of shifts with color preview, CRUD
 - **Tasks View**: Grid of task cards with icons, CRUD
 
-#### Personal Calendar
+#### Personal Roster
 - **Month View**: Standard calendar grid
 - **List View**: Chronological list of shifts/tasks
 

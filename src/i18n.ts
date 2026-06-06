@@ -6,8 +6,8 @@ const resources = {
   de: {
     translation: {
       dienstplan: 'Dienstplan',
-      teamCalendar: 'Team-Kalender',
-      myCalendar: 'Mein Kalender',
+      teamRoster: 'Team-Dienstplan',
+      myRoster: 'Mein Dienstplan',
       admin: 'Verwaltung',
       employees: 'Mitarbeiter',
       shifts: 'Schichten',
@@ -25,7 +25,7 @@ const resources = {
       delete: 'Löschen',
       confirmDelete: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
       noScheduledShifts: 'Keine geplanten Schichten',
-      yourCalendarIsEmpty: 'Ihr Kalender ist leer',
+      yourRosterIsEmpty: 'Ihr Dienstplan ist leer',
       today: 'Heute',
       refresh: 'Aktualisieren',
       month: 'Monat',
@@ -91,8 +91,8 @@ const resources = {
   en: {
     translation: {
       dutyRoster: 'Duty Roster',
-      teamCalendar: 'Team Calendar',
-      myCalendar: 'My Calendar',
+      teamRoster: 'Team Roster',
+      myRoster: 'My Roster',
       admin: 'Admin',
       employees: 'Employees',
       shifts: 'Shifts',
@@ -110,7 +110,7 @@ const resources = {
       delete: 'Delete',
       confirmDelete: 'Are you sure you want to delete this task?',
       noScheduledShifts: 'No scheduled shifts',
-      yourCalendarIsEmpty: 'Your calendar is empty',
+      yourRosterIsEmpty: 'Your roster is empty',
       today: 'Today',
       refresh: 'Refresh',
       month: 'Month',

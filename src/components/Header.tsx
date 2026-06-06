@@ -36,20 +36,20 @@ const Header: React.FC = () => {
       
       <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <Link 
-          to="/calendar" 
-          className={isActive('/calendar') ? 'active' : ''}
+          to="/roster" 
+          className={isActive('/roster') ? 'active' : ''}
           onClick={() => setMobileMenuOpen(false)}
         >
           <Calendar size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {t('teamCalendar')}
+          {t('teamRoster')}
         </Link>
         <Link 
-          to="/my-calendar" 
-          className={isActive('/my-calendar') ? 'active' : ''}
+          to="/my-roster" 
+          className={isActive('/my-roster') ? 'active' : ''}
           onClick={() => setMobileMenuOpen(false)}
         >
           <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {t('myCalendar')}
+          {t('myRoster')}
         </Link>
         {isAdmin && (
           <Link 

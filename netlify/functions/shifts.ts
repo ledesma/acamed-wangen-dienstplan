@@ -56,7 +56,7 @@ export default async (req: Request, _context: Context) => {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
       data.shifts = data.shifts.filter((s: any) => s.id !== id);
-      data.calendarEntries = data.calendarEntries.map((e: any) =>
+      data.rosterEntries = data.rosterEntries.map((e: any) =>
         e.shiftId === id ? { ...e, shiftId: null } : e
       );
       await setStorageData(data);

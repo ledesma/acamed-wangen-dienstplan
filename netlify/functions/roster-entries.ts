@@ -28,26 +28,26 @@ export default async (req: Request, _context: Context) => {
     const data = await getStorageData();
 
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.calendarEntries), { status: 200, headers });
+      return new Response(JSON.stringify(data.rosterEntries), { status: 200, headers });
     }
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
       const newEntry = { ...body, id: `entry-${Date.now()}` };
-      data.calendarEntries.push(newEntry);
+      data.rosterEntries.push(newEntry);
       await setStorageData(data);
       return new Response(JSON.stringify(newEntry), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.calendarEntries.findIndex((e: any) => e.id === id);
+      const index = data.rosterEntries.findIndex((e: any) => e.id === id);
       if (index === -1) {
         return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
       }
-      data.calendarEntries[index] = { ...data.calendarEntries[index], ...updates };
+      data.rosterEntries[index] = { ...data.rosterEntries[index], ...updates };
       await setStorageData(data);
-      return new Response(JSON.stringify(data.calendarEntries[index]), { status: 200, headers });
+      return new Response(JSON.stringify(data.rosterEntries[index]), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -55,7 +55,7 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.calendarEntries = data.calendarEntries.filter((e: any) => e.id !== id);
+      data.rosterEntries = data.rosterEntries.filter((e: any) => e.id !== id);
       await setStorageData(data);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }

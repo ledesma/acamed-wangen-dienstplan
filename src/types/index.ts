@@ -28,7 +28,7 @@ export interface Task {
   isActive: boolean;
 }
 
-export interface CalendarEntry {
+export interface RosterEntry {
   id: string;
   employeeId: string;
   date: string;

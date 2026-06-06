@@ -60,7 +60,7 @@ export default async (req: Request, _context: Context) => {
         ...s,
         defaultTaskIds: s.defaultTaskIds.filter((tid: string) => tid !== id)
       }));
-      data.calendarEntries = data.calendarEntries.map((e: any) => ({
+      data.rosterEntries = data.rosterEntries.map((e: any) => ({
         ...e,
         activeTaskIds: e.activeTaskIds.filter((tid: string) => tid !== id)
       }));
