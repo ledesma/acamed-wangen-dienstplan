@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable, closestCenter } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
@@ -9,17 +8,29 @@ import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes, getMon
 import { getTaskIcon } from '../utils/iconUtils';
 
 const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shift, isAdmin }) => {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `legend-${shift.id}`,
-    data: { shift },
-    disabled: !isAdmin
-  });
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!isAdmin) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData('text/plain', JSON.stringify({ shiftId: shift.id, shift }));
+    e.dataTransfer.effectAllowed = 'copy';
+    ref.current?.classList.add('dragging');
+  };
+
+  const handleDragEnd = () => {
+    ref.current?.classList.remove('dragging');
+  };
 
   return (
     <div
-      ref={setNodeRef}
-      className={`legend-item ${isDragging ? 'dragging' : ''} ${!isAdmin ? 'legend-item-disabled' : ''}`}
-      {...(isAdmin ? { ...listeners, ...attributes } : {})}
+      ref={ref}
+      draggable={isAdmin}
+      className={`legend-item ${!isAdmin ? 'legend-item-disabled' : ''}`}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
       <div className="legend-color" style={{ backgroundColor: shift.color }} />
       <div className="legend-info">
@@ -39,17 +50,41 @@ const DroppableCell: React.FC<{
   isAdmin: boolean;
   isWeekend: boolean;
   onToggleTask: (employeeId: string, date: string, taskId: string) => void;
-}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onToggleTask }) => {
+  onShiftDrop: (employeeId: string, date: string, shiftId: string) => void;
+}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onToggleTask, onShiftDrop }) => {
   const { t } = useTranslation();
-  const { setNodeRef, isOver } = useDroppable({
-    id: `cell-${employeeId}-${date}`,
-    data: { employeeId, date }
-  });
-
+  const [isOver, setIsOver] = useState(false);
   const [showTaskEditor, setShowTaskEditor] = React.useState(false);
 
   const activeTasks = entry?.activeTaskIds || [];
-  
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setIsOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    // Only clear if actually leaving the cell (not moving to a child)
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsOver(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsOver(false);
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.shiftId && isAdmin) {
+        onShiftDrop(employeeId, date, data.shiftId);
+      }
+    } catch {
+      // ignore parse errors
+    }
+  };
+
   const handleClick = () => {
     if (isAdmin && entry?.shiftId) {
       setShowTaskEditor(true);
@@ -63,8 +98,10 @@ const DroppableCell: React.FC<{
   return (
     <>
       <div
-        ref={setNodeRef}
         className={`day-cell ${isOver ? 'drag-over' : ''} ${isWeekend ? 'weekend' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onClick={handleClick}
       >
         {shift && (
@@ -163,7 +200,6 @@ const Roster: React.FC = () => {
   const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [dayComments, setDayComments] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [showCommentEditor, setShowCommentEditor] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [commentText, setCommentText] = useState('');
@@ -190,23 +226,8 @@ const Roster: React.FC = () => {
     setLoading(false);
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over) return;
-
-    const shiftData = active.data.current?.shift;
-    const cellData = over.data.current;
-
-    if (shiftData && cellData && isAdmin) {
-      const { employeeId, date } = cellData;
-      await assignShift(employeeId, date, shiftData.id);
-    }
+  const handleShiftDrop = async (employeeId: string, date: string, shiftId: string) => {
+    await assignShift(employeeId, date, shiftId);
   };
 
   const assignShift = async (employeeId: string, date: string, shiftId: string) => {
@@ -279,8 +300,6 @@ const Roster: React.FC = () => {
     return shifts.find(s => s.id === entry.shiftId);
   };
 
-  const activeShift = activeId ? shifts.find(s => `legend-${s.id}` === activeId) : null;
-
   if (loading) {
     return (
       <div className="loading">
@@ -290,11 +309,7 @@ const Roster: React.FC = () => {
   }
 
   return (
-    <DndContext
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <>
       <div className="roster-container">
         <div className="roster-header">
           <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
@@ -355,6 +370,7 @@ const Roster: React.FC = () => {
                     isAdmin={isAdmin}
                     isWeekend={isWeekend}
                     onToggleTask={toggleTask}
+                    onShiftDrop={handleShiftDrop}
                   />
                 );
               })}
@@ -367,19 +383,7 @@ const Roster: React.FC = () => {
             <DraggableLegendItem key={shift.id} shift={shift} isAdmin={isAdmin} />
           ))}
         </div>
-      </div>
-
-      <DragOverlay>
-        {activeShift && (
-          <div className="legend-item" style={{ opacity: 0.8 }}>
-            <div className="legend-color" style={{ backgroundColor: activeShift.color }} />
-            <div className="legend-info">
-              <span className="legend-name">{activeShift.name}</span>
-              <span className="legend-time">{formatShiftTimes(activeShift.times)}</span>
-            </div>
-          </div>
-        )}
-      </DragOverlay>
+       </div>
 
       {showCommentEditor && (
         <div className="task-editor-overlay">
@@ -411,7 +415,7 @@ const Roster: React.FC = () => {
           </div>
         </div>
       )}
-    </DndContext>
+    </>
   );
 };
 
