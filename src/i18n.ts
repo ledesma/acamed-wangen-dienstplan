@@ -8,7 +8,7 @@ const resources = {
       dienstplan: 'Dienstplan',
       teamRoster: 'Team-Dienstplan',
       myRoster: 'Mein Dienstplan',
-      admin: 'Verwaltung',
+      admin: 'Administrator',
       employees: 'Mitarbeiter',
       shifts: 'Schichten',
       tasks: 'Aufgaben',

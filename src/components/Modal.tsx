@@ -9,8 +9,8 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal">
         <div className="modal-header">
           <h2 className="modal-title">{title}</h2>
           <button className="btn-icon" onClick={onClose}>

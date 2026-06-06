@@ -91,8 +91,8 @@ const DroppableCell: React.FC<{
       </div>
       
       {showTaskEditor && isAdmin && (
-        <div className="task-editor-overlay" onClick={() => setShowTaskEditor(false)}>
-          <div className="task-editor" onClick={e => e.stopPropagation()}>
+        <div className="task-editor-overlay">
+          <div className="task-editor">
             <h3>{t('editTasks')} - {employeeId} / {date}</h3>
             
             <div className="form-group">
@@ -132,8 +132,7 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 }) => {
   return (
     <div className={`week-header-cell ${isToday(date) ? 'today' : ''}`}>
-      <div>{getDayName(date, true)}</div>
-      <div className="week-header-date">{date.getDate()}</div>
+      <div>{getDayName(date, true)}, {date.getDate()}</div>
       {isAdmin && (
         <button 
           className="day-comment-btn" 
@@ -383,8 +382,8 @@ const Roster: React.FC = () => {
       </DragOverlay>
 
       {showCommentEditor && (
-        <div className="task-editor-overlay" onClick={() => setShowCommentEditor(false)}>
-          <div className="task-editor" onClick={e => e.stopPropagation()}>
+        <div className="task-editor-overlay">
+          <div className="task-editor">
             <h3>Day Comment - {selectedDate}</h3>
             
             <div className="form-group">
