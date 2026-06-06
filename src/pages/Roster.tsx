@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare, PencilIcon, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
@@ -170,18 +170,18 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
   return (
     <div className={`week-header-cell ${isToday(date) ? 'today' : ''}`}>
       <div>{getDayName(date, true)}, {date.getDate()}</div>
+      <div className="day-comment-text" title={dayComment}>
+      <span>{dayComment}</span>
       {isAdmin && (
         <button 
           className="day-comment-btn" 
           onClick={onCommentClick}
           title="Add day comment"
         >
-          <MessageSquare size={12} />
+          <PencilIcon size={12} />
         </button>
-      )}
-      {dayComment && (
-        <div className="day-comment-indicator" title={dayComment}>💬</div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
