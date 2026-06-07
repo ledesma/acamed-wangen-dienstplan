@@ -84,6 +84,8 @@ const resources = {
       userAdded: 'Benutzer hinzugefügt',
       inviteSentTo: 'Einladung gesendet an',
       inviteUnavailableLocal: 'Einladung im lokalen Modus nicht verfügbar',
+      onboardingIncomplete: 'Onboarding unvollständig',
+      inviteUser: 'Benutzer einladen',
       days_short: {
         0: 'So', 
         1: 'Mo', 
@@ -185,6 +187,8 @@ const resources = {
       userAdded: 'User added',
       inviteSentTo: 'Invite sent to',
       inviteUnavailableLocal: 'Invite unavailable in local mode',
+      onboardingIncomplete: 'Onboarding incomplete',
+      inviteUser: 'Invite User',
       days_short: {
         0: 'Sun', 
         1: 'Mon', 

@@ -50,7 +50,7 @@ const AdminUsers: React.FC = () => {
       setInviteStatus({ success: true, message: 'User updated' });
     } else {
       try {
-        const result = await api.inviteUser(formData.name, formData.email, formData.roles as ('admin' | 'employee')[]);
+        const result = await api.inviteUser(formData.email.split('@')[0], formData.email, ['admin'] as ('admin' | 'employee')[]);
         setUsers(prev => [...prev, result.user]);
         if (result.inviteSent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
@@ -147,7 +147,7 @@ const AdminUsers: React.FC = () => {
           <h1 className="page-title">{t('users')}</h1>
           <button className="btn btn-primary" onClick={openNewModal}>
             <Plus size={18} />
-            {t('addUser')}
+            {t('inviteUser')}
           </button>
         </div>
 
@@ -193,11 +193,11 @@ const AdminUsers: React.FC = () => {
                       padding: '2px 8px',
                       borderRadius: 4,
                       fontSize: '0.75rem',
-                      background: 'var(--color-success)',
+                      background: '#f59e0b',
                       color: 'white',
                       marginRight: 8
                     }}>
-                      {t('inviteSent')}
+                      {t('onboardingIncomplete')}
                     </span>
                   )}
                   <div className="table-actions">
@@ -218,7 +218,7 @@ const AdminUsers: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingUser ? t('editUser') : t('addUser')}
+            title={editingUser ? t('editUser') : t('inviteUser')}
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSubmit}>
@@ -227,64 +227,70 @@ const AdminUsers: React.FC = () => {
                   {inviteStatus.message}
                 </div>
               )}
-              <div className="form-group">
-                <label className="label">{t('name')}</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="label">{t('email')}</label>
-                <input
-                  type="email"
-                  className="input"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="label">{t('roles')}</label>
-                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', opacity: editingUser?.id === currentUser?.id && formData.roles.includes('admin') ? 0.5 : 1 }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.roles.includes('admin')}
-                      disabled={editingUser?.email === currentUser?.email && formData.roles.includes('admin')}
-                      onChange={e => {
-                        const roles = e.target.checked
-                          ? [...formData.roles, 'admin']
-                          : formData.roles.filter(r => r !== 'admin');
-                        setFormData({ ...formData, roles });
-                      }}
-                    />
-                    {t('admin')}
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.roles.includes('employee')}
-                      onChange={e => {
-                        const roles = e.target.checked
-                          ? [...formData.roles, 'employee']
-                          : formData.roles.filter(r => r !== 'employee');
-                        setFormData({ ...formData, roles });
-                      }}
-                    />
-                    {t('employee')}
-                  </label>
+              {!editingUser && (
+                <div className="form-group">
+                  <label className="label">{t('email')}</label>
+                  <input
+                    type="email"
+                    className="input"
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
                 </div>
-              </div>
+              )}
+              {editingUser && (
+                <>
+                  <div className="form-group">
+                    <label className="label">{t('name')}</label>
+                    <input
+                      type="text"
+                      className="input"
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="label">{t('roles')}</label>
+                    <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', opacity: editingUser?.id === currentUser?.id && formData.roles.includes('admin') ? 0.5 : 1 }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.roles.includes('admin')}
+                          disabled={editingUser?.email === currentUser?.email && formData.roles.includes('admin')}
+                          onChange={e => {
+                            const roles = e.target.checked
+                              ? [...formData.roles, 'admin']
+                              : formData.roles.filter(r => r !== 'admin');
+                            setFormData({ ...formData, roles });
+                          }}
+                        />
+                        {t('admin')}
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.roles.includes('employee')}
+                          onChange={e => {
+                            const roles = e.target.checked
+                              ? [...formData.roles, 'employee']
+                              : formData.roles.filter(r => r !== 'employee');
+                            setFormData({ ...formData, roles });
+                          }}
+                        />
+                        {t('employee')}
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
               <div className="modal-footer" style={{ padding: 0, marginTop: 24, border: 'none' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                   {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingUser ? t('saveChanges') : t('addUser')}
+                  {editingUser ? t('saveChanges') : t('inviteUser')}
                 </button>
               </div>
             </form>
