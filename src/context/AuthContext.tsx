@@ -28,7 +28,7 @@ const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User 
   const roles = [...(identityUser.roles || [])] as ('admin' | 'employee')[];
 
   return {
-    id: identityUser.id || user.id,
+    id: user.id,
     email: identityUser.email,
     roles,
     name: identityUser.name || user.name,
