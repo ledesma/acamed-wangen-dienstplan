@@ -19,7 +19,7 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401, headers });
     }
 
-    const isAdmin = identityUser.roles?.includes('admin') ?? false;
+    const identityRoles = identityUser.roles || [];
 
     const data = await getStorageData();
     const email = identityUser.email;
@@ -29,21 +29,24 @@ export default async (req: Request, _context: Context) => {
     }
 
     let synced = false;
-    const existingEmployee = data.employees.find((e: any) => e.email === email);
+    const existingUser = data.users.find((e: any) => e.email === email);
 
-    if (!existingEmployee) {
-      const newEmployee = {
-        id: `emp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    if (!existingUser) {
+      const newUser = {
+        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         name: identityUser.name || email.split('@')[0],
         email,
-        role: isAdmin ? 'admin' : 'user',
+        roles: identityRoles,
         createdAt: new Date().toISOString()
       };
-      data.employees.push(newEmployee);
+      data.users.push(newUser);
       synced = true;
-    } else if (!existingEmployee.role) {
-      existingEmployee.role = isAdmin ? 'admin' : 'user';
-      synced = true;
+    } else {
+      const hasChanges = JSON.stringify(identityRoles.sort()) !== JSON.stringify((existingUser.roles || []).sort());
+      if (hasChanges) {
+        existingUser.roles = identityRoles;
+        synced = true;
+      }
     }
 
     if (synced) {

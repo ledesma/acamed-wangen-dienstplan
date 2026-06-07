@@ -22,30 +22,30 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 };
 
 export const api = {
-  async getEmployees() {
-    return apiFetch('/employees', { method: 'GET' });
+  async getUsers() {
+    return apiFetch('/users', { method: 'GET' });
   },
 
   async syncIdentityUsers() {
     return apiFetch('/sync-users', { method: 'POST' });
   },
 
-  async inviteEmployee(name: string, email: string, role: 'admin' | 'user') {
-    return apiFetch('/employees', {
+  async inviteUser(name: string, email: string, roles: ('admin' | 'employee')[]) {
+    return apiFetch('/users', {
       method: 'POST',
-      body: JSON.stringify({ name, email, role })
+      body: JSON.stringify({ name, email, roles })
     });
   },
 
-  async updateEmployee(id: string, updates: any) {
-    return apiFetch('/employees', {
+  async updateUser(id: string, updates: any) {
+    return apiFetch('/users', {
       method: 'PUT',
       body: JSON.stringify({ id, ...updates })
     });
   },
 
-  async deleteEmployee(id: string) {
-    return apiFetch(`/employees?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  async deleteUser(id: string) {
+    return apiFetch(`/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
   async getShifts() {
@@ -114,10 +114,10 @@ export const api = {
     return apiFetch(`/roster-entries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  async getRosterEntry(employeeId: string, date: string) {
+  async getRosterEntry(userId: string, date: string) {
     const entries = await apiFetch('/roster-entries', { method: 'GET' });
     return entries.find(
-      (e: any) => e.employeeId === employeeId && e.date === date
+      (e: any) => e.userId === userId && e.date === date
     );
   }
 };

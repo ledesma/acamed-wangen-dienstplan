@@ -42,17 +42,17 @@ const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shi
 };
 
 const DroppableCell: React.FC<{
-  employeeId: string;
+  userId: string;
   date: string;
   entry: RosterEntry | undefined;
   shift: Shift | undefined;
   tasks: Task[];
   isAdmin: boolean;
   isWeekend: boolean;
-  onSaveTasks: (employeeId: string, date: string, taskIds: string[]) => void;
-  onShiftDrop: (employeeId: string, date: string, shiftId: string) => void;
-  onClearCell: (employeeId: string, date: string) => void;
-}> = ({ employeeId, date, entry, shift, tasks, isAdmin, isWeekend, onSaveTasks, onShiftDrop, onClearCell }) => {
+  onSaveTasks: (userId: string, date: string, taskIds: string[]) => void;
+  onShiftDrop: (userId: string, date: string, shiftId: string) => void;
+  onClearCell: (userId: string, date: string) => void;
+}> = ({ userId, date, entry, shift, tasks, isAdmin, isWeekend, onSaveTasks, onShiftDrop, onClearCell }) => {
   const { t } = useTranslation();
   const [isOver, setIsOver] = useState(false);
   const [showTaskEditor, setShowTaskEditor] = useState(false);
@@ -79,7 +79,7 @@ const DroppableCell: React.FC<{
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
       if (data.shiftId && isAdmin) {
-        onShiftDrop(employeeId, date, data.shiftId);
+        onShiftDrop(userId, date, data.shiftId);
       }
     } catch {
       // ignore parse errors
@@ -102,12 +102,12 @@ const DroppableCell: React.FC<{
   };
 
   const handleSave = () => {
-    onSaveTasks(employeeId, date, selectedTaskIds);
+    onSaveTasks(userId, date, selectedTaskIds);
     setShowTaskEditor(false);
   };
 
   const handleClearCell = () => {
-    onClearCell(employeeId, date);
+    onClearCell(userId, date);
     setShowTaskEditor(false);
   };
 
@@ -150,7 +150,7 @@ const DroppableCell: React.FC<{
           }
         }}>
           <div className="task-editor">
-            <h3>{t('editCell')} - {employeeId} / {date}</h3>
+            <h3>{t('editCell')} - {userId} / {date}</h3>
             
             <div className="form-group">
               <label className="label">{t('tasks')}</label>
@@ -221,7 +221,7 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 
 const Roster: React.FC = () => {
   const { t } = useTranslation();
-  const { isAdmin, employees, refreshEmployees } = useAuth();
+  const { isAdmin, users, refreshUsers } = useAuth();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -240,7 +240,7 @@ const Roster: React.FC = () => {
   const weekDates = getWeekDates(currentWeekStart);
 
   useEffect(() => {
-    refreshEmployees();
+refreshUsers();
     loadData();
   }, []);
 
@@ -259,18 +259,18 @@ const Roster: React.FC = () => {
     setLoading(false);
   };
 
-  const handleShiftDrop = async (employeeId: string, date: string, shiftId: string) => {
-    await assignShift(employeeId, date, shiftId);
+  const handleShiftDrop = async (userId: string, date: string, shiftId: string) => {
+    await assignShift(userId, date, shiftId);
   };
 
-  const assignShift = async (employeeId: string, date: string, shiftId: string) => {
+  const assignShift = async (userId: string, date: string, shiftId: string) => {
     const shift = shifts.find(s => s.id === shiftId);
     if (!shift) return;
 
-    const existingEntry = entries.find(e => e.employeeId === employeeId && e.date === date);
+    const existingEntry = entries.find(e => e.userId === userId && e.date === date);
     
     const entryData = {
-      employeeId,
+      userId,
       date,
       shiftId,
       activeTaskIds: shift.defaultTaskIds
@@ -282,12 +282,12 @@ const Roster: React.FC = () => {
       await api.createRosterEntry(entryData);
     }
 
-    await refreshEmployees();
+    await refreshUsers();
     await loadData();
   };
 
-  const toggleTask = async (employeeId: string, date: string, taskId: string) => {
-    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
+  const toggleTask = async (userId: string, date: string, taskId: string) => {
+    const entry = entries.find(e => e.userId === userId && e.date === date);
     if (!entry) return;
 
     const activeTaskIds = entry.activeTaskIds.includes(taskId)
@@ -295,25 +295,25 @@ const Roster: React.FC = () => {
       : [...entry.activeTaskIds, taskId];
 
     await api.updateRosterEntry(entry.id, { activeTaskIds });
-    await refreshEmployees();
+    await refreshUsers();
     await loadData();
   };
 
-  const saveTasks = async (employeeId: string, date: string, taskIds: string[]) => {
-    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
+  const saveTasks = async (userId: string, date: string, taskIds: string[]) => {
+    const entry = entries.find(e => e.userId === userId && e.date === date);
     if (!entry) return;
 
     await api.updateRosterEntry(entry.id, { activeTaskIds: taskIds });
-    await refreshEmployees();
+    await refreshUsers();
     await loadData();
   };
 
-  const clearCell = async (employeeId: string, date: string) => {
-    const entry = entries.find(e => e.employeeId === employeeId && e.date === date);
+  const clearCell = async (userId: string, date: string) => {
+    const entry = entries.find(e => e.userId === userId && e.date === date);
     if (!entry) return;
 
     await api.updateRosterEntry(entry.id, { shiftId: null, activeTaskIds: [] });
-    await refreshEmployees();
+    await refreshUsers();
     await loadData();
   };
 
@@ -342,8 +342,8 @@ const Roster: React.FC = () => {
     setCurrentWeekStart(new Date(today.setDate(diff)));
   };
 
-  const getEntryForCell = (employeeId: string, date: string) => {
-    return entries.find(e => e.employeeId === employeeId && e.date === date);
+  const getEntryForCell = (userId: string, date: string) => {
+    return entries.find(e => e.userId === userId && e.date === date);
   };
 
   const getShiftForEntry = (entry: RosterEntry | undefined) => {
@@ -396,24 +396,24 @@ const Roster: React.FC = () => {
             />
           ))}
 
-          {employees.map(employee => (
-            <React.Fragment key={employee.id}>
+          {users.map(user => (
+            <React.Fragment key={user.id}>
               <div className="employee-cell">
                 <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                  {employee.name.split(' ').map(n => n[0]).join('')}
+                  {user.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                {employee.name}
+                {user.name}
               </div>
               {weekDates.map((date, index) => {
                 const dateStr = formatDate(date);
-                const entry = getEntryForCell(employee.id, dateStr);
+                const entry = getEntryForCell(user.id, dateStr);
                 const shift = getShiftForEntry(entry);
                 const isWeekend = index >= 5;
                 
                 return (
                   <DroppableCell
-                    key={`${employee.id}-${dateStr}`}
-                    employeeId={employee.id}
+                    key={`${user.id}-${dateStr}`}
+                    userId={user.id}
                     date={dateStr}
                     entry={entry}
                     shift={shift}

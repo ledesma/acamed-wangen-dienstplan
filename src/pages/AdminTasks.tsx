@@ -84,8 +84,8 @@ const AdminTasks: React.FC = () => {
         <div className="sidebar-title">Administration</div>
         <nav className="sidebar-nav">
           <Link
-            to="/admin/employees"
-            className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
+            to="/admin/users"
+            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
           >
             <Users size={18} />
             {t('employees')}

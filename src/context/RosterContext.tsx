@@ -35,7 +35,7 @@ export const RosterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const exportICS = (user: { name: string; id: string }) => {
-    const userEntries = rosterEntries.filter(e => e.employeeId === user.id);
+    const userEntries = rosterEntries.filter(e => e.userId === user.id);
     const userEntriesWithDetails = userEntries.map(entry => {
       const shift = shifts.find(s => s.id === entry.shiftId);
       const entryTasks = entry.activeTaskIds

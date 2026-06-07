@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react';
-import { Employee } from '../types';
+import { UserRecord } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-const AdminEmployees: React.FC = () => {
+const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const { refreshEmployees } = useAuth();
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { refreshUsers } = useAuth();
+  const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [inviteStatus, setInviteStatus] = useState<{success: boolean; message: string} | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'user' as 'admin' | 'user'
+    roles: [] as string[]
   });
 
   useEffect(() => {
-    loadEmployees();
+    loadUsers();
   }, []);
 
-  const loadEmployees = async () => {
-    const data = await api.getEmployees();
-    setEmployees(data);
+  const loadUsers = async () => {
+    const data = await api.getUsers();
+    setUsers(data);
     setLoading(false);
   };
 
@@ -36,12 +36,13 @@ const AdminEmployees: React.FC = () => {
     e.preventDefault();
     setInviteStatus(null);
     
-    if (editingEmployee) {
-      await api.updateEmployee(editingEmployee.id, formData);
-      setInviteStatus({ success: true, message: 'Employee updated' });
+    if (editingUser) {
+      const filteredRoles = formData.roles.filter(r => r === 'admin' || r === 'employee');
+      await api.updateUser(editingUser.id, { ...formData, roles: filteredRoles });
+      setInviteStatus({ success: true, message: 'User updated' });
     } else {
       try {
-        const result = await api.inviteEmployee(formData.name, formData.email, formData.role);
+        const result = await api.inviteUser(formData.name, formData.email, formData.roles as ('admin' | 'employee')[]);
         if (result.inviteSent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
         } else {
@@ -53,34 +54,34 @@ const AdminEmployees: React.FC = () => {
       }
     }
     
-    await loadEmployees();
-    await refreshEmployees();
+    await loadUsers();
+    await refreshUsers();
     setShowModal(false);
-    setEditingEmployee(null);
-    setFormData({ name: '', email: '', role: 'user' });
+    setEditingUser(null);
+    setFormData({ name: '', email: '', roles: [] });
   };
 
-  const handleEdit = (employee: Employee) => {
-    setEditingEmployee(employee);
+  const handleEdit = (user: UserRecord) => {
+    setEditingUser(user);
     setFormData({
-      name: employee.name,
-      email: employee.email,
-      role: employee.role
+      name: user.name,
+      email: user.email,
+      roles: [...(user.roles || [])]
     });
     setShowModal(true);
   };
 
   const handleDelete = async (id: string) => {
     if (confirm(t('confirmDeleteEmployee'))) {
-      await api.deleteEmployee(id);
-      await loadEmployees();
-      await refreshEmployees();
+      await api.deleteUser(id);
+      await loadUsers();
+   await refreshUsers();
     }
   };
 
   const openNewModal = () => {
-    setEditingEmployee(null);
-    setFormData({ name: '', email: '', role: 'user' });
+    setEditingUser(null);
+    setFormData({ name: '', email: '', roles: [] });
     setShowModal(true);
   };
 
@@ -98,8 +99,8 @@ const AdminEmployees: React.FC = () => {
         <div className="sidebar-title">{t('admin')}</div>
         <nav className="sidebar-nav">
           <Link
-            to="/admin/employees"
-            className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
+            to="/admin/users"
+            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
           >
             <Users size={18} />
             {t('employees')}
@@ -135,35 +136,39 @@ const AdminEmployees: React.FC = () => {
             <tr>
               <th>{t('name')}</th>
               <th>{t('email')}</th>
-              <th>{t('role')}</th>
+              <th>{t('roles')}</th>
               <th>{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
-            {employees.map(emp => (
-              <tr key={emp.id}>
+            {users.map(user => (
+              <tr key={user.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                      {emp.name.split(' ').map(n => n[0]).join('')}
+                      {user.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    {emp.name}
+                    {user.name}
                   </div>
                 </td>
-                <td>{emp.email}</td>
+                <td>{user.email}</td>
                 <td>
-                  <span style={{
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    fontSize: '0.75rem',
-                    background: emp.role === 'admin' ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
-                    color: emp.role === 'admin' ? 'white' : 'var(--color-text-primary)'
-                  }}>
-                    {t(emp.role)}
-                  </span>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {(user.roles || []).map(r => (
+                      <span key={r} style={{
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        fontSize: '0.75rem',
+                        background: r === 'admin' ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
+                        color: r === 'admin' ? 'white' : 'var(--color-text-primary)'
+                      }}>
+                        {t(r)}
+                      </span>
+                    ))}
+                  </div>
                 </td>
                 <td>
-                  {emp.inviteSent && (
+                  {user.inviteSent && (
                     <span style={{
                       padding: '2px 8px',
                       borderRadius: 4,
@@ -176,10 +181,10 @@ const AdminEmployees: React.FC = () => {
                     </span>
                   )}
                   <div className="table-actions">
-                    <button className="btn-icon" onClick={() => handleEdit(emp)}>
+                    <button className="btn-icon" onClick={() => handleEdit(user)}>
                       <Edit2 size={16} />
                     </button>
-                    <button className="btn-icon" onClick={() => handleDelete(emp.id)}>
+                    <button className="btn-icon" onClick={() => handleDelete(user.id)}>
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -191,7 +196,7 @@ const AdminEmployees: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingEmployee ? t('editEmployee') : t('addEmployee')}
+            title={editingUser ? t('editEmployee') : t('addEmployee')}
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSubmit}>
@@ -221,22 +226,42 @@ const AdminEmployees: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="label">{t('role')}</label>
-                <select
-                  className="select"
-                  value={formData.role}
-                  onChange={e => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' })}
-                >
-                  <option value="user">{t('user')}</option>
-                  <option value="admin">{t('admin')}</option>
-                </select>
+                <label className="label">{t('roles')}</label>
+                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.roles.includes('admin')}
+                      onChange={e => {
+                        const roles = e.target.checked
+                          ? [...formData.roles, 'admin']
+                          : formData.roles.filter(r => r !== 'admin');
+                        setFormData({ ...formData, roles });
+                      }}
+                    />
+                    {t('admin')}
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.roles.includes('employee')}
+                      onChange={e => {
+                        const roles = e.target.checked
+                          ? [...formData.roles, 'employee']
+                          : formData.roles.filter(r => r !== 'employee');
+                        setFormData({ ...formData, roles });
+                      }}
+                    />
+                    {t('employee')}
+                  </label>
+                </div>
               </div>
               <div className="modal-footer" style={{ padding: 0, marginTop: 24, border: 'none' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                   {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingEmployee ? t('saveChanges') : t('addEmployee')}
+                  {editingUser ? t('saveChanges') : t('addEmployee')}
                 </button>
               </div>
             </form>
@@ -247,4 +272,4 @@ const AdminEmployees: React.FC = () => {
   );
 };
 
-export default AdminEmployees;
+export default AdminUsers;

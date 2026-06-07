@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User as IdentityUser, getUser, login as identityLogin, signup as identitySignup, logout as identityLogout, onAuthChange } from '@netlify/identity';
-import { User, Employee } from '../types';
+import { User, UserRecord } from '../types';
 import api from '../data/api';
 
 interface AuthContextType {
   user: User | null;
-  employees: Employee[];
+  users: UserRecord[];
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  refreshEmployees: () => Promise<void>;
+  refreshUsers: () => Promise<void>;
   isAdmin: boolean;
 }
 
@@ -18,52 +18,46 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_TIMEOUT_MS = 5000;
 
-const isAdminFromIdentity = (identityUser: IdentityUser): boolean => {
-  return identityUser.roles?.includes('admin') ?? false;
-};
-
-const mapIdentityUser = (identityUser: IdentityUser, employees: Employee[]): User | null => {
+const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User | null => {
   if (!identityUser?.email) return null;
 
-  const employee = employees.find(e => e.email === identityUser.email);
-  if (!employee) return null;
+  const user = users.find(u => u.email === identityUser.email);
+  if (!user) return null;
 
-  const role = isAdminFromIdentity(identityUser)
-    ? 'admin'
-    : (employee.role === 'admin' ? 'admin' : 'user') as 'admin' | 'user';
+  const roles = [...(identityUser.roles || [])] as ('admin' | 'employee')[];
 
   return {
-    id: identityUser.id || employee.id,
+    id: identityUser.id || user.id,
     email: identityUser.email,
-    role,
-    name: identityUser.name || employee.name,
-    avatar: employee.avatar
+    roles,
+    name: identityUser.name || user.name,
+    avatar: user.avatar
   };
 };
 
-const loadEmployeesAndUser = async (
-  identityUser: IdentityUser | null,
-  setUser: React.Dispatch<React.SetStateAction<User | null>>,
-  setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>,
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
-): Promise<void> => {
-  try {
-    const emps = await Promise.race([
-      api.getEmployees(),
-      new Promise<Employee[]>((_, reject) =>
-        setTimeout(() => reject(new Error('getEmployees timeout')), ADMIN_TIMEOUT_MS)
-      )
-    ]);
-    setEmployees(emps);
+ const loadUsersAndAuth = async (
+    identityUser: IdentityUser | null,
+    setUser: React.Dispatch<React.SetStateAction<User | null>>,
+    setUsers: React.Dispatch<React.SetStateAction<UserRecord[]>>,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  ): Promise<void> => {
+    try {
+      const users = await Promise.race([
+        api.getUsers(),
+        new Promise<UserRecord[]>((_, reject) =>
+          setTimeout(() => reject(new Error('getUsers timeout')), ADMIN_TIMEOUT_MS)
+        )
+      ]);
+      setUsers(users);
 
     if (identityUser) {
-      const mappedUser = mapIdentityUser(identityUser, emps);
+      const mappedUser = mapIdentityUser(identityUser, users);
       setUser(mappedUser);
     } else {
       setUser(null);
     }
   } catch (e) {
-    console.error('Failed to load employees:', e);
+    console.error('Failed to load users:', e);
     setUser(null);
   } finally {
     setIsLoading(false);
@@ -74,7 +68,7 @@ const handleAuthChange = async (
   event: string | undefined,
   identityUser: IdentityUser | null,
   setUser: React.Dispatch<React.SetStateAction<User | null>>,
-  setEmployees: React.Dispatch<React.SetStateAction<Employee[]>>,
+  setUsers: React.Dispatch<React.SetStateAction<UserRecord[]>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 ): Promise<void> => {
   if (event === 'logout' || !identityUser) {
@@ -94,7 +88,7 @@ const handleAuthChange = async (
     } catch (e) {
       console.error('Sync failed, continuing:', e);
     }
-    await loadEmployeesAndUser(identityUser, setUser, setEmployees, setIsLoading);
+await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
   } catch (e) {
     console.error('Failed to handle auth change:', e);
     setUser(null);
@@ -104,7 +98,7 @@ const handleAuthChange = async (
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [users, setUsers] = useState<UserRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const performLoginFlow = useCallback(async () => {
@@ -127,7 +121,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (e) {
           console.error('Sync failed, continuing:', e);
         }
-        await loadEmployeesAndUser(identityUser, setUser, setEmployees, setIsLoading);
+        await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
       } else {
         setUser(null);
         setIsLoading(false);
@@ -137,7 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       setIsLoading(false);
     }
-  }, [setUser, setEmployees, setIsLoading]);
+  }, [setUser, setUsers, setIsLoading]);
 
   useEffect(() => {
     const init = async () => {
@@ -160,7 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } catch (e) {
             console.error('Sync failed, continuing:', e);
           }
-          await loadEmployeesAndUser(identityUser, setUser, setEmployees, setIsLoading);
+   await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
         } else {
           setUser(null);
           setIsLoading(false);
@@ -174,7 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     init();
 
     const unsubscribe = onAuthChange((event, identityUser) => {
-      handleAuthChange(event, identityUser, setUser, setEmployees, setIsLoading);
+      handleAuthChange(event, identityUser, setUser, setUsers, setIsLoading);
     });
 
     return unsubscribe;
@@ -207,17 +201,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const refreshEmployees = async () => {
+  const refreshUsers = async () => {
     try {
-      const emps = await api.getEmployees();
-      setEmployees(emps);
+      const users = await api.getUsers();
+      setUsers(users);
       if (user) {
         const identityUser = await getUser();
-        const mappedUser = identityUser ? mapIdentityUser(identityUser, emps) : null;
+        const mappedUser = identityUser ? mapIdentityUser(identityUser, users) : null;
         setUser(mappedUser);
       }
     } catch (e) {
-      console.error('Failed to refresh employees:', e);
+      console.error('Failed to refresh users:', e);
     }
   };
 
@@ -225,13 +219,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <AuthContext.Provider
       value={{
         user,
-        employees,
+        users,
         isLoading,
         login,
         logout,
         register,
-        refreshEmployees,
-        isAdmin: user?.role === 'admin'
+        refreshUsers,
+        isAdmin: user?.roles?.includes('admin') ?? false
       }}
     >
       {children}

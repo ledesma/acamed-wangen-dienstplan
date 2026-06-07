@@ -8,7 +8,7 @@ import Register from './pages/Register';
 import Join from './pages/Join';
 import Roster from './pages/Roster';
 import PersonalRoster from './pages/PersonalRoster';
-import AdminEmployees from './pages/AdminEmployees';
+import AdminUsers from './pages/AdminUsers';
 import AdminShifts from './pages/AdminShifts';
 import AdminTasks from './pages/AdminTasks';
 
@@ -29,7 +29,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean 
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && user?.role !== 'admin') {
+  if (adminOnly && !user?.roles?.includes('admin')) {
     return <Navigate to="/roster" replace />;
   }
 
@@ -47,7 +47,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || !user.roles?.includes('admin')) {
     return <Navigate to="/roster" replace />;
   }
 
@@ -81,12 +81,12 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
-        path="/admin/employees"
+        path="/admin/users"
         element={
           <ProtectedRoute>
             <AdminRoute>
               <Layout>
-                <AdminEmployees />
+                <AdminUsers />
               </Layout>
             </AdminRoute>
           </ProtectedRoute>

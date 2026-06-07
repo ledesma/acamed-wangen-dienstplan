@@ -134,8 +134,8 @@ const AdminShifts: React.FC = () => {
         <div className="sidebar-title">{t('admin')}</div>
         <nav className="sidebar-nav">
           <Link
-            to="/admin/employees"
-            className={`sidebar-link ${location.pathname === '/admin/employees' ? 'active' : ''}`}
+            to="/admin/users"
+            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
           >
             <Users size={18} />
             {t('employees')}

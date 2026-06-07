@@ -56,7 +56,7 @@ const Header: React.FC = () => {
         </Link>
         {isAdmin && (
           <Link 
-            to="/admin/employees" 
+            to="/admin/users" 
             className={location.pathname.startsWith('/admin') ? 'active' : ''}
             onClick={() => setMobileMenuOpen(false)}
           >

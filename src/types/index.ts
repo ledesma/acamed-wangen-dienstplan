@@ -1,8 +1,8 @@
-export interface Employee {
+export interface UserRecord {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  roles: ('admin' | 'employee')[];
   avatar?: string;
   createdAt: string;
   inviteSent?: boolean;
@@ -31,7 +31,7 @@ export interface Task {
 
 export interface RosterEntry {
   id: string;
-  employeeId: string;
+  userId: string;
   date: string;
   shiftId: string | null;
   activeTaskIds: string[];
@@ -41,7 +41,7 @@ export interface RosterEntry {
 export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'user';
+  roles: ('admin' | 'employee')[];
   name: string;
   avatar?: string;
 }

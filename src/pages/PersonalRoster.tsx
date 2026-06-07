@@ -11,16 +11,16 @@ type ViewMode = 'month' | 'list';
 
 const PersonalRoster: React.FC = () => {
   const { t } = useTranslation();
-  const { user, refreshEmployees } = useAuth();
+  const { user, refreshUsers } = useAuth();
   const { rosterEntries, shifts, tasks, refresh } = useRoster();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   React.useEffect(() => {
-    refreshEmployees();
+    refreshUsers();
   }, []);
 
-  const userEntries = rosterEntries.filter(e => e.employeeId === user?.id);
+  const userEntries = rosterEntries.filter(e => e.userId === user?.id);
   const monthDates = getMonthDates(currentDate);
 
   const getShiftForEntry = (entry: RosterEntry) => {

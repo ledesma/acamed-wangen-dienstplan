@@ -9,6 +9,7 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
+  const endpoint = '/users';
   const url = new URL(req.url);
 
   if (req.method === 'OPTIONS') {
@@ -26,52 +27,54 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-    const data = await getStorageData();
+  const data = await getStorageData();
 
-    if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.employees), { status: 200, headers });
+   if (req.method === 'GET') {
+      return new Response(JSON.stringify(data.users), { status: 200, headers });
     }
 
-    if (req.method === 'POST') {
+   if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
-      const { name, email, role } = body;
+      const { name, email, roles } = body;
 
-      if (!name || !email || !role) {
-        return new Response(JSON.stringify({ error: 'Name, email, and role are required' }), { status: 400, headers });
+      if (!name || !email || !roles || !Array.isArray(roles)) {
+        return new Response(JSON.stringify({ error: 'Name, email, and roles (array) are required' }), { status: 400, headers });
       }
 
-      const existingEmployee = data.employees.find((e: any) => e.email === email);
-      if (existingEmployee) {
-        return new Response(JSON.stringify({ error: 'An employee with this email already exists' }), { status: 409, headers });
+      const filteredRoles = roles.filter((r: string) => r === 'admin' || r === 'employee');
+
+      const existingUser = data.users.find((e: any) => e.email === email);
+      if (existingUser) {
+        return new Response(JSON.stringify({ error: 'A user with this email already exists' }), { status: 409, headers });
       }
 
-     let inviteSent = false;
+      let inviteSent = false;
 
       try {
         const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(36).charAt(0)).join('');
         const createdUser = await admin.createUser({ email, password: randomPassword });
         await admin.updateUser(createdUser.id, { confirm: false });
         inviteSent = true;
-        console.log(`[invite-employee] Invite sent to ${email} (user id: ${createdUser.id})`);
+        console.log(`[invite-user] Invite sent to ${email} (user id: ${createdUser.id})`);
       } catch (err: any) {
-        console.warn(`[invite-employee] Failed to send invite: ${err.message}`);
+        console.warn(`[invite-user] Failed to send invite: ${err.message}`);
       }
 
-      const newEmployee = {
+      const newUser = {
         id: `emp-${Date.now()}`,
         name,
         email,
-        role,
+        roles: filteredRoles,
         createdAt: new Date().toISOString(),
         inviteSent
       };
 
-      data.employees.push(newEmployee);
+      data.users.push(newUser);
       await setStorageData(data);
 
       const responseBody = {
         success: true,
-        employee: newEmployee,
+        user: newUser,
         inviteSent
       };
 
@@ -80,13 +83,17 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.employees.findIndex((e: any) => e.id === id);
+      const index = data.users.findIndex((e: any) => e.id === id);
       if (index === -1) {
-        return new Response(JSON.stringify({ error: `Employee not found ${id}` }), { status: 404, headers });
+        return new Response(JSON.stringify({ error: `User not found ${id}` }), { status: 404, headers });
       }
 
-      const wasRoleUpdate = updates.role && updates.role !== data.employees[index].role;
-      data.employees[index] = { ...data.employees[index], ...updates };
+      if (updates.roles) {
+        updates.roles = updates.roles.filter((r: string) => r === 'admin' || r === 'employee');
+      }
+
+      const wasRoleUpdate = updates.roles && JSON.stringify(updates.roles.sort()) !== JSON.stringify((data.users[index].roles || []).sort());
+      data.users[index] = { ...data.users[index], ...updates };
       await setStorageData(data);
 
       if (wasRoleUpdate && updates.email) {
@@ -99,16 +106,16 @@ export default async (req: Request, _context: Context) => {
             await admin.updateUser(identityUser.id, {
               user_metadata: {
                 ...existingMetadata,
-                role: updates.role
+                roles: updates.roles
               }
             });
           }
         } catch (err: any) {
-          console.warn(`[sync-role] Failed to sync role to Identity for ${updates.email}: ${err.message}`);
+          console.warn(`[sync-role] Failed to sync roles to Identity for ${updates.email}: ${err.message}`);
         }
       }
 
-      return new Response(JSON.stringify(data.employees[index]), { status: 200, headers });
+      return new Response(JSON.stringify(data.users[index]), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -116,8 +123,8 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.employees = data.employees.filter((e: any) => e.id !== id);
-      data.rosterEntries = data.rosterEntries.filter((e: any) => e.employeeId !== id);
+      data.users = data.users.filter((e: any) => e.id !== id);
+      data.rosterEntries = data.rosterEntries.filter((e: any) => e.userId !== id);
       await setStorageData(data);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }

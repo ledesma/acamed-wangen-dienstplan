@@ -18,19 +18,19 @@ vi.mock('@netlify/identity', () => ({
 
 const { getUser, login: identityLogin } = await import('@netlify/identity');
 
-let sharedEmployees = [
+let sharedUsers = [
   {
     id: 'emp-1',
     name: 'Admin User',
     email: 'admin@test.com',
-    role: 'admin' as const,
+    roles: ['admin'],
     createdAt: '2024-01-01T00:00:00Z'
   },
   {
     id: 'emp-2',
     name: 'Regular User',
     email: 'user@test.com',
-    role: 'user' as const,
+    roles: [],
     createdAt: '2024-01-02T00:00:00Z'
   }
 ];
@@ -48,23 +48,23 @@ const mockIdentityUser = {
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sharedEmployees = [
+    sharedUsers = [
       {
         id: 'emp-1',
         name: 'Admin User',
         email: 'admin@test.com',
-        role: 'admin' as const,
+        roles: ['admin'],
         createdAt: '2024-01-01T00:00:00Z'
       },
       {
         id: 'emp-2',
         name: 'Regular User',
         email: 'user@test.com',
-        role: 'user' as const,
+        roles: [],
         createdAt: '2024-01-02T00:00:00Z'
       }
     ];
-    (api.getEmployees as ReturnType<typeof vi.fn>).mockImplementation(async () => [...sharedEmployees]);
+    (api.getUsers as ReturnType<typeof vi.fn>).mockImplementation(async () => [...sharedUsers]);
     (api.syncIdentityUsers as ReturnType<typeof vi.fn>).mockImplementation(async () => {
       return { success: true, synced: false };
     });
@@ -217,14 +217,14 @@ describe('AuthContext', () => {
     });
   });
 
-  it('should resolve user when sync creates employee record on first login', async () => {
-    sharedEmployees = [];
+  it('should resolve user when sync creates user record on first login', async () => {
+    sharedUsers = [];
     (api.syncIdentityUsers as ReturnType<typeof vi.fn>).mockImplementation(async () => {
-      sharedEmployees.push({
+      sharedUsers.push({
         id: 'emp-1',
         name: 'New Admin',
         email: 'newadmin@test.com',
-        role: 'admin' as const,
+        roles: ['admin'],
         createdAt: '2024-01-02T00:00:00Z'
       });
       return { success: true, synced: true };
@@ -258,31 +258,31 @@ describe('AuthContext', () => {
     });
   });
 
-  it('should use identity roles array for admin determination even when employee has wrong role', async () => {
-    const userWithRoles = {
-      id: 'identity-3',
-      email: 'roleadmin@test.com',
-      name: 'Role Admin',
+  it('should use Identity roles as source of truth over user table', async () => {
+    const identityUserWithAdmin = {
+      id: 'identity-4',
+      email: 'adminuser@test.com',
+      name: 'Admin User',
       roles: ['admin'],
-      confirmedAt: '2024-01-03T00:00:00Z',
-      createdAt: '2024-01-03T00:00:00Z',
-      updatedAt: '2024-01-03T00:00:00Z'
+      confirmedAt: '2024-01-04T00:00:00Z',
+      createdAt: '2024-01-04T00:00:00Z',
+      updatedAt: '2024-01-04T00:00:00Z'
     };
-    const employeesWithWrongRole = [{
-      id: 'emp-3',
-      name: 'Role Admin',
-      email: 'roleadmin@test.com',
-      role: 'user' as const,
-      createdAt: '2024-01-03T00:00:00Z'
+    const userWithNoRoles = [{
+      id: 'emp-4',
+      name: 'Admin User',
+      email: 'adminuser@test.com',
+      roles: [],
+      createdAt: '2024-01-04T00:00:00Z'
     }];
-    (api.getEmployees as ReturnType<typeof vi.fn>).mockResolvedValue(employeesWithWrongRole);
-    (getUser as ReturnType<typeof vi.fn>).mockResolvedValue(userWithRoles);
+    (api.getUsers as ReturnType<typeof vi.fn>).mockResolvedValue(userWithNoRoles);
+    (getUser as ReturnType<typeof vi.fn>).mockResolvedValue(identityUserWithAdmin);
 
     const TestComponent = () => {
       const { user, isAdmin } = useAuth();
       return (
         <div>
-          <div data-testid="userRole">{user?.role || 'none'}</div>
+          <div data-testid="userRole">{user?.roles?.join(',') || 'none'}</div>
           <div data-testid="isAdmin">{isAdmin ? 'admin' : 'user'}</div>
         </div>
       );

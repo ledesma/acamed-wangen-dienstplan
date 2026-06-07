@@ -20,21 +20,21 @@ export default async (req: Request, _context: Context) => {
     const userIdentifier = url.searchParams.get('user');
 
     if (!userIdentifier) {
-      return new Response(JSON.stringify({ error: 'user parameter required (email or employeeId)' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'user parameter required (email or userId)' }), { status: 400 });
     }
 
     const data = await getStorageData();
 
-    const employee = data.employees.find((e: any) =>
+    const user = data.users.find((e: any) =>
       e.email === userIdentifier || e.id === userIdentifier
     );
 
-    if (!employee) {
+    if (!user) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
     const userEntries = data.rosterEntries
-      .filter((e: any) => e.employeeId === employee.id)
+      .filter((e: any) => e.userId === user.id)
       .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
     const lines: string[] = [
@@ -43,7 +43,7 @@ export default async (req: Request, _context: Context) => {
       'PRODID:-//Acamed Calendar//EN',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      `X-WR-CALNAME:${employee.name}`,
+      `X-WR-CALNAME:${user.name}`,
       'BEGIN:VTIMEZONE',
       'TZID:Europe/Berlin',
       'BEGIN:STANDARD',
