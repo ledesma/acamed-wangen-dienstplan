@@ -1,14 +1,16 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import netlify from "@netlify/vite-plugin";
-
+import { spaFallback } from './vite-plugin-spa-fallback'
 
 export default defineConfig({
-  plugins: [react(), netlify()],
+  plugins: [react(), spaFallback()],
   server: {
     port: 5173,
     host: true
+  },
+  optimizeDeps: {
+    exclude: ['@netlify/functions']
   },
   test: {
     globals: true,

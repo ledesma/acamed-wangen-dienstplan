@@ -5,7 +5,7 @@
     "llama.cpp": {
       "type": "openai",
       "options": {
-        "baseURL": "http://172.20.176.1:1234/v1"
+        "baseURL": "http://localhost:1234/v1"
       },
       "models": {
         "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL": {
