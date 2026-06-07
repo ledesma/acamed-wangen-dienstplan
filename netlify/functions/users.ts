@@ -101,21 +101,29 @@ export default async (req: Request, _context: Context) => {
       }
 
       const wasRoleUpdate = updates.roles && JSON.stringify(updates.roles.sort()) !== JSON.stringify((data.users[index].roles || []).sort());
+      const wasNameUpdate = updates.name && updates.name !== data.users[index].name;
       data.users[index] = { ...data.users[index], ...updates };
       await setStorageData(data);
 
-      if (wasRoleUpdate && updates.email) {
+      if ((wasRoleUpdate || wasNameUpdate) && updates.email) {
         try {
           const identityUsers = await admin.listUsers();
           const identityUser = identityUsers.find((u: any) => u.email === updates.email);
           if (identityUser) {
             const currentUser = await admin.getUser(identityUser.id);
-            const existingMetadata = (currentUser as any).user_metadata || {};
+            const existingAppMetadata = (currentUser as any).app_metadata || {};
+            const existingUserMetadata = (currentUser as any).user_metadata || {};
+            const updatesToApp: Record<string, any> = {};
+            const updatesToUser: Record<string, any> = {};
+            if (wasRoleUpdate) {
+              updatesToApp.roles = updates.roles;
+            }
+            if (wasNameUpdate) {
+              updatesToUser.full_name = updates.name;
+            }
             await admin.updateUser(identityUser.id, {
-              user_metadata: {
-                ...existingMetadata,
-                roles: updates.roles
-              }
+              app_metadata: { ...existingAppMetadata, ...updatesToApp },
+              user_metadata: { ...existingUserMetadata, ...updatesToUser }
             });
           }
         } catch (err: any) {

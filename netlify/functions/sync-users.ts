@@ -19,7 +19,7 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401, headers });
     }
 
-    const identityRoles = identityUser.roles || [];
+    const identityRoles = (identityUser as any).app_metadata?.roles || [];
 
     const data = await getStorageData();
     const email = identityUser.email;
@@ -42,9 +42,8 @@ export default async (req: Request, _context: Context) => {
       data.users.push(newUser);
       synced = true;
     } else {
-      const hasChanges = JSON.stringify(identityRoles.sort()) !== JSON.stringify((existingUser.roles || []).sort());
-      if (hasChanges) {
-        existingUser.roles = identityRoles;
+      if (existingUser.inviteSent) {
+        existingUser.inviteSent = false;
         synced = true;
       }
     }

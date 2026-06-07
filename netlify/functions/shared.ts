@@ -71,15 +71,6 @@ const getCommentsPath = (): string => {
   return join(dir, DAY_COMMENTS_KEY);
 };
 
-import { initialUsers, initialShifts, initialTasks, initialRosterEntries } from './seed';
-
-const getDefaultData = (): StorageData => ({
-  users: initialUsers,
-  shifts: initialShifts,
-  tasks: initialTasks,
-  rosterEntries: initialRosterEntries
-});
-
 export const getStorageData = async (): Promise<StorageData> => {
   if (isNetlifyEnv()) {
     try {
@@ -89,7 +80,7 @@ export const getStorageData = async (): Promise<StorageData> => {
     } catch (e) {
       console.warn('Error reading from blobs:', e);
     }
-    return getDefaultData();
+    throw new Error('No data found in storage. Please upload seed-data.json to the blob store.');
   }
   
   const storagePath = getStoragePath();
@@ -106,7 +97,7 @@ export const getStorageData = async (): Promise<StorageData> => {
   const backup = restoreFromBackup();
   if (backup) return backup;
   
-  return getDefaultData();
+  throw new Error('No data found in storage. Please upload seed-data.json to the local storage path.');
 };
 
 export const setStorageData = async (data: StorageData): Promise<void> => {

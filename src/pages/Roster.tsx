@@ -233,6 +233,7 @@ const Roster: React.FC = () => {
   const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [dayComments, setDayComments] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCommentEditor, setShowCommentEditor] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [commentText, setCommentText] = useState('');
@@ -247,17 +248,23 @@ refreshUsers();
 
   const loadData = async () => {
     setLoading(true);
-    const [shiftsData, tasksData, entriesData, commentsData] = await Promise.all([
-      api.getShifts(),
-      api.getTasks(),
-      api.getRosterEntries(),
-      dayCommentApi.getComments()
-    ]);
-    setShifts(shiftsData);
-    setTasks(tasksData);
-    setEntries(entriesData);
-    setDayComments(commentsData || {});
-    setLoading(false);
+    setError(null);
+    try {
+      const [shiftsData, tasksData, entriesData, commentsData] = await Promise.all([
+        api.getShifts(),
+        api.getTasks(),
+        api.getRosterEntries(),
+        dayCommentApi.getComments()
+      ]);
+      setShifts(shiftsData);
+      setTasks(tasksData);
+      setEntries(entriesData);
+      setDayComments(commentsData || {});
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleShiftDrop = async (userId: string, date: string, shiftId: string) => {
@@ -356,6 +363,18 @@ refreshUsers();
     return (
       <div className="loading">
         <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-message" style={{ padding: 24, textAlign: 'center' }}>
+        <h2>Failed to load data</h2>
+        <p>{error}</p>
+        <button className="btn btn-secondary" onClick={loadData} style={{ marginTop: 16 }}>
+          <RefreshCw size={18} /> Retry
+        </button>
       </div>
     );
   }

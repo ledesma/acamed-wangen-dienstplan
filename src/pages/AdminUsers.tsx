@@ -10,9 +10,10 @@ import { useTranslation } from 'react-i18next';
 const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const { refreshUsers, user: currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [inviteStatus, setInviteStatus] = useState<{success: boolean; message: string} | null>(null);
@@ -27,9 +28,15 @@ const AdminUsers: React.FC = () => {
   }, []);
 
   const loadUsers = async () => {
-    const data = await api.getUsers();
-    setUsers(data);
-    setLoading(false);
+    try {
+      const data = await api.getUsers();
+      setUsers(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,11 +45,13 @@ const AdminUsers: React.FC = () => {
     
     if (editingUser) {
       const filteredRoles = formData.roles.filter(r => r === 'admin' || r === 'employee');
-      await api.updateUser(editingUser.id, { ...formData, roles: filteredRoles });
+      const updatedUser = await api.updateUser(editingUser.id, { ...formData, roles: filteredRoles });
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updatedUser, inviteSent: u.inviteSent } : u));
       setInviteStatus({ success: true, message: 'User updated' });
     } else {
       try {
         const result = await api.inviteUser(formData.name, formData.email, formData.roles as ('admin' | 'employee')[]);
+        setUsers(prev => [...prev, result.user]);
         if (result.inviteSent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
         } else {
@@ -54,8 +63,6 @@ const AdminUsers: React.FC = () => {
       }
     }
     
-    await loadUsers();
-    await refreshUsers();
     setShowModal(false);
     setEditingUser(null);
     setFormData({ name: '', email: '', roles: [] });
@@ -74,8 +81,7 @@ const AdminUsers: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm(t('confirmDeleteUser'))) {
       await api.deleteUser(id);
-      await loadUsers();
-   await refreshUsers();
+      setUsers(prev => prev.filter(u => u.id !== id));
     }
   };
 
@@ -89,6 +95,20 @@ const AdminUsers: React.FC = () => {
     return (
       <div className="loading">
         <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-layout">
+        <div className="admin-content">
+          <div className="error-message" style={{ padding: 24, textAlign: 'center' }}>
+            <h2>Failed to load data</h2>
+            <p>{error}</p>
+            <button className="btn btn-primary" onClick={loadUsers}>Retry</button>
+          </div>
+        </div>
       </div>
     );
   }
