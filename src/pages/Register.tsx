@@ -6,8 +6,8 @@ const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'user' | 'admin'>('user');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -15,11 +15,13 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setLoading(true);
 
     try {
-      await register(name, email, password, role);
-      navigate('/roster');
+      await register(name, email, password);
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -34,6 +36,11 @@ const Register: React.FC = () => {
         
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
+          {success && (
+            <div className="success-message">
+              Account created! Redirecting to login...
+            </div>
+          )}
           
           <div className="form-group">
             <label className="label">Name</label>
@@ -72,19 +79,7 @@ const Register: React.FC = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="label">Role</label>
-            <select 
-              className="select" 
-              value={role} 
-              onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button type="submit" className="btn btn-primary" disabled={loading || success}>
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>

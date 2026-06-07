@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "netlify dev",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "/home/ledesma/.nvm/versions/node/v24.16.0/bin/netlify",
+      "args": ["dev", "--no-open"],
+      "console": "integratedTerminal",
+      "env": { 
+        "BROWSER": "none"
+      },
+      "serverReadyAction": {
+        "pattern": "Server now ready on (https?://[\\w:.-]+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      },
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "netlify/functions/*": "${workspaceFolder}/netlify/functions/*"
+      }
+    },
+    {
+      "name": "netlify functions:serve",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/.netlify/functions-serve/**/*.js"],
+      "program": "/home/ledesma/.nvm/versions/node/v24.16.0/bin/netlify",
+      "args": ["functions:serve"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

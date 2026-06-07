@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { getUser } from '@netlify/identity';
 
 const STORAGE_KEY = 'acamed_roster_data';
 const DAY_COMMENTS_KEY = 'acamed_day_comments';
@@ -216,23 +217,18 @@ export const requireAdmin = (user: any): void => {
   }
 };
 
-export const getUserFromHeader = async (authHeader: string | undefined): Promise<any> => {
-  if (!authHeader) return null;
+export const getUserFromRequest = async (req: Request): Promise<any> => {
   try {
-    const base64 = authHeader.replace('Basic ', '');
-    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-    const [email, password] = decoded.split(':');
-    
-    if (!email || !password) return null;
-    
-    const data = await getStorageData();
-    const employee = data.employees.find((e: any) => e.email === email);
-    
-    if (!employee) return null;
-    
-    return employee;
+    const user = await getUser();
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role || (user.roles?.includes('admin') ? 'admin' : 'user')
+    };
   } catch (e) {
-    console.error('[shared] Error in getUserFromHeader:', e);
+    console.error('[shared] Error in getUserFromRequest:', e);
     return null;
   }
 };

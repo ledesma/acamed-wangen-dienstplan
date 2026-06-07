@@ -1,53 +1,14 @@
 const API_BASE = '/.netlify/functions';
 
-let cachedCredentials: { email: string; password: string } | null = null;
-
-const loadCachedCredentials = () => {
-  if (cachedCredentials) return;
-  try {
-    const stored = sessionStorage.getItem('acamed_creds');
-    if (stored) {
-      cachedCredentials = JSON.parse(stored);
-    }
-  } catch {}
-};
-
-const saveCredentials = (email: string, password: string) => {
-  cachedCredentials = { email, password };
-  sessionStorage.setItem('acamed_creds', JSON.stringify({ email, password }));
-};
-
-export const setCredentials = (email: string, password: string) => {
-  saveCredentials(email, password);
-};
-
-export const clearCredentials = () => {
-  cachedCredentials = null;
-  sessionStorage.removeItem('acamed_creds');
-};
-
-export const getAuthHeader = (): string | null => {
-  loadCachedCredentials();
-  if (cachedCredentials) {
-    const credentials = btoa(`${cachedCredentials.email}:${cachedCredentials.password}`);
-    return `Basic ${credentials}`;
-  }
-  return null;
-};
-
 const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>)
   };
-  
-  const authHeader = getAuthHeader();
-  if (authHeader) {
-    headers['Authorization'] = authHeader;
-  }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers
   });
 
@@ -65,10 +26,14 @@ export const api = {
     return apiFetch('/employees', { method: 'GET' });
   },
 
-  async createEmployee(employee: any) {
+  async syncIdentityUsers() {
+    return apiFetch('/sync-users', { method: 'POST' });
+  },
+
+  async inviteEmployee(name: string, email: string, role: 'admin' | 'user') {
     return apiFetch('/employees', {
       method: 'POST',
-      body: JSON.stringify(employee)
+      body: JSON.stringify({ name, email, role })
     });
   },
 

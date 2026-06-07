@@ -5,6 +5,7 @@ import { RosterProvider } from './context/RosterContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Join from './pages/Join';
 import Roster from './pages/Roster';
 import PersonalRoster from './pages/PersonalRoster';
 import AdminEmployees from './pages/AdminEmployees';
@@ -58,6 +59,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/join" element={<Join />} />
       <Route
         path="/roster"
         element={

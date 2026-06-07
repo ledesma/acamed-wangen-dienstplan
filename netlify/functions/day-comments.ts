@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getDayComments, setDayComments, getUserFromHeader, requireAdmin } from './shared';
+import { getDayComments, setDayComments, getUserFromRequest, requireAdmin } from './shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -13,8 +13,8 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const user = await getUserFromHeader(req.headers.get('authorization') ?? undefined);
     const isReadOnly = req.method === 'GET';
+    const user = isReadOnly ? null : await getUserFromRequest(req);
 
     if (!isReadOnly) {
       if (!user) {

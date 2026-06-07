@@ -5,6 +5,7 @@ export interface Employee {
   role: 'admin' | 'user';
   avatar?: string;
   createdAt: string;
+  inviteSent?: boolean;
 }
 
 export interface ShiftTime {

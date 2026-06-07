@@ -15,6 +15,7 @@ const AdminEmployees: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [inviteStatus, setInviteStatus] = useState<{success: boolean; message: string} | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,11 +34,23 @@ const AdminEmployees: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInviteStatus(null);
     
     if (editingEmployee) {
       await api.updateEmployee(editingEmployee.id, formData);
+      setInviteStatus({ success: true, message: 'Employee updated' });
     } else {
-      await api.createEmployee(formData);
+      try {
+        const result = await api.inviteEmployee(formData.name, formData.email, formData.role);
+        if (result.inviteSent) {
+          setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
+        } else {
+          setInviteStatus({ success: true, message: `${t('employeeAdded')} (${t('inviteUnavailableLocal')})` });
+        }
+      } catch (err: any) {
+        setInviteStatus({ success: false, message: err.message });
+        return;
+      }
     }
     
     await loadEmployees();
@@ -150,6 +163,18 @@ const AdminEmployees: React.FC = () => {
                   </span>
                 </td>
                 <td>
+                  {emp.inviteSent && (
+                    <span style={{
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontSize: '0.75rem',
+                      background: 'var(--color-success)',
+                      color: 'white',
+                      marginRight: 8
+                    }}>
+                      {t('inviteSent')}
+                    </span>
+                  )}
                   <div className="table-actions">
                     <button className="btn-icon" onClick={() => handleEdit(emp)}>
                       <Edit2 size={16} />
@@ -170,6 +195,11 @@ const AdminEmployees: React.FC = () => {
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSubmit}>
+              {inviteStatus && (
+                <div className={inviteStatus.success ? 'success-message' : 'error-message'}>
+                  {inviteStatus.message}
+                </div>
+              )}
               <div className="form-group">
                 <label className="label">{t('name')}</label>
                 <input

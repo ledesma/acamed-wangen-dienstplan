@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData, setStorageData, getUserFromHeader, requireAdmin } from './shared';
+import { admin } from '@netlify/identity';
+import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -15,8 +16,8 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const user = await getUserFromHeader(req.headers.get('authorization') ?? undefined);
     const isReadOnly = req.method === 'GET';
+    const user = isReadOnly ? null : await getUserFromRequest(req);
 
     if (!isReadOnly) {
       if (!user) {
@@ -33,24 +34,80 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
+      const { name, email, role } = body;
+
+      if (!name || !email || !role) {
+        return new Response(JSON.stringify({ error: 'Name, email, and role are required' }), { status: 400, headers });
+      }
+
+      const existingEmployee = data.employees.find((e: any) => e.email === email);
+      if (existingEmployee) {
+        return new Response(JSON.stringify({ error: 'An employee with this email already exists' }), { status: 409, headers });
+      }
+
+     let inviteSent = false;
+
+      try {
+        const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(36).charAt(0)).join('');
+        const createdUser = await admin.createUser({ email, password: randomPassword });
+        await admin.updateUser(createdUser.id, { confirm: false });
+        inviteSent = true;
+        console.log(`[invite-employee] Invite sent to ${email} (user id: ${createdUser.id})`);
+      } catch (err: any) {
+        console.warn(`[invite-employee] Failed to send invite: ${err.message}`);
+      }
+
       const newEmployee = {
-        ...body,
         id: `emp-${Date.now()}`,
-        createdAt: new Date().toISOString()
+        name,
+        email,
+        role,
+        createdAt: new Date().toISOString(),
+        inviteSent
       };
+
       data.employees.push(newEmployee);
       await setStorageData(data);
-      return new Response(JSON.stringify(newEmployee), { status: 201, headers });
+
+      const responseBody = {
+        success: true,
+        employee: newEmployee,
+        inviteSent
+      };
+
+      return new Response(JSON.stringify(responseBody), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
       const index = data.employees.findIndex((e: any) => e.id === id);
       if (index === -1) {
-        return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
+        return new Response(JSON.stringify({ error: `Employee not found ${id}` }), { status: 404, headers });
       }
+
+      const wasRoleUpdate = updates.role && updates.role !== data.employees[index].role;
       data.employees[index] = { ...data.employees[index], ...updates };
       await setStorageData(data);
+
+      if (wasRoleUpdate && updates.email) {
+        try {
+          const identityUsers = await admin.listUsers();
+          const identityUser = identityUsers.find((u: any) => u.email === updates.email);
+          if (identityUser) {
+            const currentUser = await admin.getUser(identityUser.id);
+            const existingMetadata = (currentUser as any).user_metadata || {};
+            await admin.updateUser(identityUser.id, {
+              user_metadata: {
+                ...existingMetadata,
+                role: updates.role
+              }
+            });
+          }
+        } catch (err: any) {
+          console.warn(`[sync-role] Failed to sync role to Identity for ${updates.email}: ${err.message}`);
+        }
+      }
+
       return new Response(JSON.stringify(data.employees[index]), { status: 200, headers });
     }
 

@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData, setStorageData, getUserFromHeader, requireAdmin } from './shared';
+import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -15,8 +15,8 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const user = await getUserFromHeader(req.headers.get('authorization') ?? undefined);
     const isReadOnly = req.method === 'GET';
+    const user = isReadOnly ? null : await getUserFromRequest(req);
 
     if (!isReadOnly) {
       if (!user) {
@@ -43,7 +43,7 @@ export default async (req: Request, _context: Context) => {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
       const index = data.shifts.findIndex((s: any) => s.id === id);
       if (index === -1) {
-        return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
+        return new Response(JSON.stringify({ error: `Shift not found ${id}` }), { status: 404, headers });
       }
       data.shifts[index] = { ...data.shifts[index], ...updates };
       await setStorageData(data);
