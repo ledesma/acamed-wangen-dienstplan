@@ -9,7 +9,8 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     credentials: 'include',
-    headers
+    headers,
+    cache: 'no-store'
   });
 
   if (!response.ok) {
@@ -23,7 +24,7 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 export const api = {
   async getUsers() {
-    return apiFetch('/users', { method: 'GET' });
+    return apiFetch(`/users?t=${Date.now()}`, { method: 'GET' });
   },
 
   async syncIdentityUsers() {
