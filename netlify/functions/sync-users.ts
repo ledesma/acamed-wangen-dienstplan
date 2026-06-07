@@ -54,7 +54,8 @@ export default async (req: Request, _context: Context) => {
 
     return new Response(JSON.stringify({
       success: true,
-      synced
+      synced,
+      users: data.users
     }), { status: 200, headers });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {

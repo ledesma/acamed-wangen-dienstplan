@@ -31,7 +31,18 @@ export default async (req: Request, _context: Context) => {
     const data = await getStorageData();
 
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.users), { status: 200, headers });
+      let users = data.users;
+      try {
+        const identityUsers = await admin.listUsers();
+        const identityEmails = new Set(identityUsers.map((u: any) => u.email));
+        users = users.map((u: any) => ({
+          ...u,
+          inviteSent: !identityEmails.has(u.email)
+        }));
+      } catch (e) {
+        // If Identity check fails, use stored value
+      }
+      return new Response(JSON.stringify(users), { status: 200, headers });
     }
 
     if (req.method === 'POST') {
@@ -74,7 +85,7 @@ export default async (req: Request, _context: Context) => {
         email,
         roles: filteredRoles,
         createdAt: new Date().toISOString(),
-        inviteSent
+        inviteSent: true
       };
 
       data.users.push(newUser);

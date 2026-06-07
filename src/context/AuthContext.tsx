@@ -40,10 +40,11 @@ const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User 
     identityUser: IdentityUser | null,
     setUser: React.Dispatch<React.SetStateAction<User | null>>,
     setUsers: React.Dispatch<React.SetStateAction<UserRecord[]>>,
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    syncResult?: any
   ): Promise<void> => {
     try {
-      const users = await Promise.race([
+      const users = syncResult?.users || await Promise.race([
         api.getUsers(),
         new Promise<UserRecord[]>((_, reject) =>
           setTimeout(() => reject(new Error('getUsers timeout')), ADMIN_TIMEOUT_MS)
@@ -79,8 +80,9 @@ const handleAuthChange = async (
   }
 
   try {
+    let syncResult: any;
     try {
-      await Promise.race([
+      syncResult = await Promise.race([
         api.syncIdentityUsers(),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('sync timeout')), ADMIN_TIMEOUT_MS)
@@ -89,7 +91,7 @@ const handleAuthChange = async (
     } catch (e) {
       console.error('Sync failed, continuing:', e);
     }
-await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
+ await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading, syncResult);
   } catch (e) {
     console.error('Failed to handle auth change:', e);
     setUser(null);
@@ -112,8 +114,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ]);
 
       if (identityUser) {
+        let syncResult: any;
         try {
-          await Promise.race([
+          syncResult = await Promise.race([
             api.syncIdentityUsers(),
             new Promise((_, reject) =>
               setTimeout(() => reject(new Error('sync timeout')), ADMIN_TIMEOUT_MS)
@@ -122,7 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (e) {
           console.error('Sync failed, continuing:', e);
         }
-        await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
+        await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading, syncResult);
       } else {
         setUser(null);
         setIsLoading(false);
@@ -145,8 +148,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ]);
 
         if (identityUser) {
+          let syncResult: any;
           try {
-            await Promise.race([
+            syncResult = await Promise.race([
               api.syncIdentityUsers(),
               new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('sync timeout')), ADMIN_TIMEOUT_MS)
@@ -155,7 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } catch (e) {
             console.error('Sync failed, continuing:', e);
           }
-   await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading);
+   await loadUsersAndAuth(identityUser, setUser, setUsers, setIsLoading, syncResult);
         } else {
           setUser(null);
           setIsLoading(false);
