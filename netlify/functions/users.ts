@@ -1,6 +1,7 @@
 import type { Context } from '@netlify/functions';
-import { admin } from '@netlify/identity';
+import { admin, getIdentityConfig } from '@netlify/identity';
 import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
+import axios from 'axios';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -27,13 +28,13 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-  const data = await getStorageData();
+    const data = await getStorageData();
 
-   if (req.method === 'GET') {
+    if (req.method === 'GET') {
       return new Response(JSON.stringify(data.users), { status: 200, headers });
     }
 
-   if (req.method === 'POST') {
+    if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
       const { name, email, roles } = body;
 
@@ -51,11 +52,18 @@ export default async (req: Request, _context: Context) => {
       let inviteSent = false;
 
       try {
-        const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(36).charAt(0)).join('');
-        const createdUser = await admin.createUser({ email, password: randomPassword });
-        await admin.updateUser(createdUser.id, { confirm: false });
+        
+        const config = getIdentityConfig();
+        if (!config) {
+          throw new Error('Identity not configured');
+        }
+
+        await axios.post(`${config.url}/invite`, { email }, {
+          headers: { authorization: `Bearer ${config.token}` }
+        });   
+
         inviteSent = true;
-        console.log(`[invite-user] Invite sent to ${email} (user id: ${createdUser.id})`);
+        console.log(`[invite-user] Invite sent to ${email}`);
       } catch (err: any) {
         console.warn(`[invite-user] Failed to send invite: ${err.message}`);
       }
