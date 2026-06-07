@@ -6,7 +6,7 @@ import { LogOut, Calendar, User, Settings, Menu, X, Globe, Link2 } from 'lucide-
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isEmployee } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -46,14 +46,16 @@ const Header: React.FC = () => {
           <Calendar size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
           {t('teamRoster')}
         </Link>
-        <Link 
-          to="/my-roster" 
-          className={isActive('/my-roster') ? 'active' : ''}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {t('myRoster')}
-        </Link>
+        {isEmployee && (
+          <Link 
+            to="/my-roster" 
+            className={isActive('/my-roster') ? 'active' : ''}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            {t('myRoster')}
+          </Link>
+        )}
         {isAdmin && (
           <Link 
             to="/admin/users" 

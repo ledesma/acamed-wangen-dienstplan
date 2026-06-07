@@ -10,7 +10,7 @@ A modern team roster application with drag-and-drop shift management, personal r
 - **Personal Roster**: Month and list views for individual employees
 - **ICS Export**: Download roster as .ics file
 - **Dark/Light Mode**: Theme toggle with system preference detection
-- **Admin Panel**: Manage employees, shifts, and tasks
+- **Admin Panel**: Manage users, shifts, and tasks
 
 ## Tech Stack
 
@@ -65,7 +65,7 @@ npm test
 
 ## Data Models
 
-- **Employees**: Name, email, role (admin/user)
+- **Users**: Name, email, role (admin/employee)
 - **Shifts**: Name, work times, color, default tasks
 - **Tasks**: Name, icon, active status
 - **Roster Entries**: Employee + date + shift + active tasks
@@ -76,6 +76,6 @@ npm test
 - `/register` - Registration page
 - `/roster` - Team roster (week view)
 - `/my-roster` - Personal roster (month/list)
-- `/admin/employees` - Employee management
+- `/admin/users` - Users management
 - `/admin/shifts` - Shift management
 - `/admin/tasks` - Task management

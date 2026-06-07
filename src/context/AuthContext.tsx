@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   refreshUsers: () => Promise<void>;
   isAdmin: boolean;
+  isEmployee: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -225,7 +226,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         register,
         refreshUsers,
-        isAdmin: user?.roles?.includes('admin') ?? false
+        isAdmin: user?.roles?.includes('admin') ?? false,
+        isEmployee: user?.roles?.includes('employee') ?? false
       }}
     >
       {children}

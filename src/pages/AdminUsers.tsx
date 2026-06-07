@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const { refreshUsers } = useAuth();
+  const { refreshUsers, user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -46,7 +46,7 @@ const AdminUsers: React.FC = () => {
         if (result.inviteSent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
         } else {
-          setInviteStatus({ success: true, message: `${t('employeeAdded')} (${t('inviteUnavailableLocal')})` });
+          setInviteStatus({ success: true, message: `${t('userAdded')} (${t('inviteUnavailableLocal')})` });
         }
       } catch (err: any) {
         setInviteStatus({ success: false, message: err.message });
@@ -72,7 +72,7 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm(t('confirmDeleteEmployee'))) {
+    if (confirm(t('confirmDeleteUser'))) {
       await api.deleteUser(id);
       await loadUsers();
    await refreshUsers();
@@ -103,7 +103,7 @@ const AdminUsers: React.FC = () => {
             className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
           >
             <Users size={18} />
-            {t('employees')}
+            {t('users')}
           </Link>
           <Link
             to="/admin/shifts"
@@ -124,10 +124,10 @@ const AdminUsers: React.FC = () => {
 
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
-          <h1 className="page-title">{t('employees')}</h1>
+          <h1 className="page-title">{t('users')}</h1>
           <button className="btn btn-primary" onClick={openNewModal}>
             <Plus size={18} />
-            {t('addEmployee')}
+            {t('addUser')}
           </button>
         </div>
 
@@ -184,9 +184,11 @@ const AdminUsers: React.FC = () => {
                     <button className="btn-icon" onClick={() => handleEdit(user)}>
                       <Edit2 size={16} />
                     </button>
-                    <button className="btn-icon" onClick={() => handleDelete(user.id)}>
-                      <Trash2 size={16} />
-                    </button>
+                    {currentUser?.email !== user.email && (
+                      <button className="btn-icon" onClick={() => handleDelete(user.id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -196,7 +198,7 @@ const AdminUsers: React.FC = () => {
 
         {showModal && (
           <Modal
-            title={editingUser ? t('editEmployee') : t('addEmployee')}
+            title={editingUser ? t('editUser') : t('addUser')}
             onClose={() => setShowModal(false)}
           >
             <form onSubmit={handleSubmit}>
@@ -228,10 +230,11 @@ const AdminUsers: React.FC = () => {
               <div className="form-group">
                 <label className="label">{t('roles')}</label>
                 <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', opacity: editingUser?.id === currentUser?.id && formData.roles.includes('admin') ? 0.5 : 1 }}>
                     <input
                       type="checkbox"
                       checked={formData.roles.includes('admin')}
+                      disabled={editingUser?.email === currentUser?.email && formData.roles.includes('admin')}
                       onChange={e => {
                         const roles = e.target.checked
                           ? [...formData.roles, 'admin']
@@ -261,7 +264,7 @@ const AdminUsers: React.FC = () => {
                   {t('cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingUser ? t('saveChanges') : t('addEmployee')}
+                  {editingUser ? t('saveChanges') : t('addUser')}
                 </button>
               </div>
             </form>

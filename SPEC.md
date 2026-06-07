@@ -124,7 +124,7 @@
 - **Legend**: Below calendar, horizontal scroll, draggable shift cards
 
 #### Admin Panels
-- **Employees View**: Table with CRUD operations
+- **Users View**: Table with CRUD operations
 - **Shifts View**: List of shifts with color preview, CRUD
 - **Tasks View**: Grid of task cards with icons, CRUD
 
@@ -201,7 +201,7 @@
 - Visual feedback during drag
 - Shows shift name, color, times
 
-### Admin: Employees
+### Admin: Users
 - Table: Name, Email, Role, Actions
 - Add new employee modal
 - Edit existing employee
@@ -277,7 +277,7 @@
 
 ### Week View
 - [ ] Calendar shows correct week
-- [ ] Employees displayed in rows
+- [ ] Users with role Employee displayed in rows
 - [ ] Days in columns
 - [ ] Navigate between weeks works
 - [ ] Current day is highlighted
@@ -295,7 +295,7 @@
 - [ ] Legend shows task icons
 
 ### Admin Panels
-- [ ] Can CRUD employees
+- [ ] Can CRUD users
 - [ ] Can CRUD shifts with times
 - [ ] Can CRUD tasks with icons
 - [ ] Changes persist to database

@@ -238,6 +238,7 @@ const Roster: React.FC = () => {
   const [commentText, setCommentText] = useState('');
 
   const weekDates = getWeekDates(currentWeekStart);
+  const rosterUsers = users.filter(u => u.roles?.includes('employee'));
 
   useEffect(() => {
 refreshUsers();
@@ -396,7 +397,7 @@ refreshUsers();
             />
           ))}
 
-          {users.map(user => (
+          {rosterUsers.map(user => (
             <React.Fragment key={user.id}>
               <div className="employee-cell">
                 <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
