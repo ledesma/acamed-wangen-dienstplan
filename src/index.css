@@ -103,7 +103,22 @@ body {
 
 .header-nav {
   display: flex;
+  align-items: center;
   gap: 8px;
+  flex: 1;
+  margin-left: 24px;
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-center a {
+  min-width: 190px;
 }
 
 .header-nav a {
@@ -1331,7 +1346,6 @@ body {
     position: absolute;
     top: 64px;
     left: 0;
-    right: 0;
     flex-direction: column;
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
@@ -1339,6 +1353,7 @@ body {
     gap: 4px;
     box-shadow: var(--shadow-md);
     align-items: flex-start;
+    margin-left: 0px;
   }
 
   .header-nav.open {
@@ -1374,6 +1389,12 @@ body {
 
   .header-nav .nav-spacer {
     display: none;
+  }
+
+  .nav-center {
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .header-actions {

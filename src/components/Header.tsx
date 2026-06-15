@@ -59,43 +59,46 @@ const Header: React.FC = () => {
             <hr className="nav-divider mobile-only" />
           </>
         )}
-        <Link 
-          to="/roster" 
-          className={isActive('/roster') ? 'active' : ''}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <Calendar size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {t('teamRoster')}
-        </Link>
-        {isEmployee && (
+        <span className="nav-spacer desktop-only"></span>
+        <div className="nav-center">
           <Link 
-            to="/my-roster" 
-            className={isActive('/my-roster') ? 'active' : ''}
+            to="/roster" 
+            className={isActive('/roster') ? 'active' : ''}
             onClick={() => setMobileMenuOpen(false)}
           >
-            <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-            {t('myRoster')}
+            <Calendar size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            {t('teamRoster')}
           </Link>
-        )}
-        {isAdmin && (
-          <Link 
-            to="/admin/users" 
-            className={location.pathname.startsWith('/admin') ? 'active' : ''}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Settings size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-            {t('admin')}
-          </Link>
-        )}
+          {isEmployee && (
+            <Link 
+              to="/my-roster" 
+              className={isActive('/my-roster') ? 'active' : ''}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {t('myRoster')}
+            </Link>
+          )}
+          {isAdmin && (
+            <Link 
+              to="/admin/users" 
+              className={location.pathname.startsWith('/admin') ? 'active' : ''}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Settings size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {t('admin')}
+            </Link>
+          )}
+        </div>
         {user && (
           <>
             <hr className="nav-divider mobile-only" />
+            <span className="nav-spacer desktop-only"></span>
             <button className="nav-action" onClick={copyIcsUrl}>
               <Link2 size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
               <label className="nav-label">{t('copyCalendarUrl')}</label>
             </button>
-            <span className="nav-spacer desktop-only"></span>
-            <span className="nav-user-name desktop-only">{user.name}</span>
+            <span className="nav-user-name desktop-only">&nbsp; &nbsp; {user.name}</span>
             <div className="lang-dropdown">
               <button className="nav-action" onClick={() => setLangDropdownOpen(!langDropdownOpen)}>
                 <Globe size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
