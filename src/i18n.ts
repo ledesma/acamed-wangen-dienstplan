@@ -86,6 +86,7 @@ const resources = {
       inviteUnavailableLocal: 'Einladung im lokalen Modus nicht verfügbar',
       onboardingIncomplete: 'Onboarding unvollständig',
       inviteUser: 'Benutzer einladen',
+      copyCalendarUrl: 'Kalender-URL kopieren',
       days_short: {
         0: 'So', 
         1: 'Mo', 
@@ -189,6 +190,7 @@ const resources = {
       inviteUnavailableLocal: 'Invite unavailable in local mode',
       onboardingIncomplete: 'Onboarding incomplete',
       inviteUser: 'Invite User',
+      copyCalendarUrl: 'Copy calendar URL',
       days_short: {
         0: 'Sun', 
         1: 'Mon', 

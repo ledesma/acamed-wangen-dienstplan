@@ -9,8 +9,6 @@ const Header: React.FC = () => {
   const { user, logout, isAdmin, isEmployee } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [icsCopySuccess, setIcsCopySuccess] = useState(false);
 
   const icsUrl = user ? `${window.location.origin}/my-roster-ics?user=${user.email}` : '';
 
@@ -18,7 +16,13 @@ const Header: React.FC = () => {
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
-    setLangMenuOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const copyIcsUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(icsUrl);
+    } catch { }
   };
 
   return (
@@ -38,6 +42,12 @@ const Header: React.FC = () => {
       </div>
       
       <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
+        {user && (
+          <>
+            <div className="nav-user-name mobile-only">{user.name}</div>
+            <hr className="nav-divider mobile-only" />
+          </>
+        )}
         <Link 
           to="/roster" 
           className={isActive('/roster') ? 'active' : ''}
@@ -66,59 +76,27 @@ const Header: React.FC = () => {
             {t('admin')}
           </Link>
         )}
+        {user && (
+          <>
+            <hr className="nav-divider mobile-only" />
+            <button className="nav-action" onClick={copyIcsUrl}>
+              <Link2 size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              <label className="nav-label">{t('copyCalendarUrl')}</label>
+            </button>
+            <span className="nav-spacer desktop-only"></span>
+            <span className="nav-user-name desktop-only">{user.name}</span>
+            <button className="nav-action" onClick={() => changeLanguage(i18n.language === 'de' ? 'en' : 'de')}>
+              <Globe size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {i18n.language === 'de' ? 'English' : 'Deutsch'}
+            </button>
+            <button className="nav-action" onClick={logout}>
+              <LogOut size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              <label className="nav-label">{t('logout')}</label>
+            </button>
+          </>
+        )}
       </nav>
 
-      <div className="header-actions">
-        {user && icsUrl && (
-          <button
-            className="btn-icon"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(icsUrl);
-                setIcsCopySuccess(true);
-                setTimeout(() => setIcsCopySuccess(false), 2000);
-              } catch { }
-            }}
-            title={icsCopySuccess ? 'Copied!' : 'Copy calendar subscription URL'}
-          >
-            {icsCopySuccess ? <Link2 size={20} /> : <Link2 size={20} />}
-          </button>
-        )}
-
-        <div className="lang-menu-container">
-          <button 
-            className="btn-icon" 
-            onClick={() => setLangMenuOpen(!langMenuOpen)}
-            title="Language"
-          >
-            <Globe size={20} />
-          </button>
-          {langMenuOpen && (
-            <div className="lang-menu">
-              <button 
-                className={i18n.language === 'de' ? 'active' : ''}
-                onClick={() => changeLanguage('de')}
-              >
-                Deutsch
-              </button>
-              <button 
-                className={i18n.language === 'en' ? 'active' : ''}
-                onClick={() => changeLanguage('en')}
-              >
-                English
-              </button>
-            </div>
-          )}
-        </div>
-        {user && (
-          <div className="user-menu">
-            <span style={{ fontWeight: 500 }}>{user.name}</span>
-            <button className="btn-icon" onClick={logout} title={t('logout')}>
-              <LogOut size={20} />
-            </button>
-          </div>
-        )}
-      </div>
     </header>
   );
 };
