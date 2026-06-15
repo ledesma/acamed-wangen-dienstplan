@@ -46,13 +46,13 @@ const AdminUsers: React.FC = () => {
     if (editingUser) {
       const filteredRoles = formData.roles.filter(r => r === 'admin' || r === 'employee');
       const updatedUser = await api.updateUser(editingUser.id, { ...formData, roles: filteredRoles });
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updatedUser, inviteSent: u.inviteSent } : u));
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updatedUser, invite_sent: u.invite_sent } : u));
       setInviteStatus({ success: true, message: 'User updated' });
     } else {
       try {
         const result = await api.inviteUser(formData.email.split('@')[0], formData.email, ['admin'] as ('admin' | 'employee')[]);
         setUsers(prev => [...prev, result.user]);
-        if (result.inviteSent) {
+        if (result.invite_sent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
         } else {
           setInviteStatus({ success: true, message: `${t('userAdded')} (${t('inviteUnavailableLocal')})` });
@@ -165,9 +165,6 @@ const AdminUsers: React.FC = () => {
               <tr key={user.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </div>
                     {user.name}
                   </div>
                 </td>
@@ -188,7 +185,7 @@ const AdminUsers: React.FC = () => {
                   </div>
                 </td>
                 <td>
-                  {user.inviteSent && (
+                  {user.invite_sent && (
                     <span style={{
                       padding: '2px 8px',
                       borderRadius: 4,

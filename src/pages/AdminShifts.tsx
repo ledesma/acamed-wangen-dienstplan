@@ -24,8 +24,8 @@ const AdminShifts: React.FC = () => {
     name: '',
     times: [{ from: '08:00', to: '16:00' }],
     color: COLORS[0],
-    defaultTaskIds: [] as string[],
-    isActive: true
+    default_task_ids: [] as string[],
+    is_active: true
   });
 
   useEffect(() => {
@@ -67,8 +67,8 @@ const AdminShifts: React.FC = () => {
       name: shift.name,
       times: shift.times.length > 0 ? shift.times : [{ from: '08:00', to: '16:00' }],
       color: shift.color,
-      defaultTaskIds: shift.defaultTaskIds,
-      isActive: shift.isActive
+      default_task_ids: shift.default_task_ids,
+      is_active: shift.is_active
     });
     setShowModal(true);
   };
@@ -86,8 +86,8 @@ const AdminShifts: React.FC = () => {
       name: '',
       times: [{ from: '08:00', to: '16:00' }],
       color: COLORS[0],
-      defaultTaskIds: [],
-      isActive: true
+      default_task_ids: [],
+      is_active: true
     });
   };
 
@@ -114,9 +114,9 @@ const AdminShifts: React.FC = () => {
   const toggleTask = (taskId: string) => {
     setFormData(prev => ({
       ...prev,
-      defaultTaskIds: prev.defaultTaskIds.includes(taskId)
-        ? prev.defaultTaskIds.filter(id => id !== taskId)
-        : [...prev.defaultTaskIds, taskId]
+      default_task_ids: prev.default_task_ids.includes(taskId)
+        ? prev.default_task_ids.filter(id => id !== taskId)
+        : [...prev.default_task_ids, taskId]
     }));
   };
 
@@ -189,7 +189,7 @@ const AdminShifts: React.FC = () => {
                   {formatShiftTimes(shift.times)}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                  {t('defaultTasksCount', { count: shift.defaultTaskIds.length })}
+                  {t('defaultTasksCount', { count: shift.default_task_ids.length })}
                 </div>
               </div>
             </div>
@@ -275,13 +275,13 @@ const AdminShifts: React.FC = () => {
                   {tasks.map(task => (
                     <div
                       key={task.id}
-                      className={`task-item ${formData.defaultTaskIds.includes(task.id) ? 'selected' : ''}`}
+                      className={`task-item ${formData.default_task_ids.includes(task.id) ? 'selected' : ''}`}
                       onClick={() => toggleTask(task.id)}
                     >
                       <input
                         type="checkbox"
                         className="checkbox"
-                        checked={formData.defaultTaskIds.includes(task.id)}
+                        checked={formData.default_task_ids.includes(task.id)}
                         onChange={() => {}}
                       />
                       <span>{task.name}</span>
@@ -295,8 +295,8 @@ const AdminShifts: React.FC = () => {
                   <input
                     type="checkbox"
                     className="checkbox"
-                    checked={formData.isActive}
-                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                    checked={formData.is_active}
+                    onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
                   />
                   {t('active')}
                 </label>

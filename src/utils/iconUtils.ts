@@ -2,7 +2,7 @@ export const TASK_ICON_NAMES: Record<string, string> = {
   Heart: 'favorite',
   FileText: 'description',
   AlertTriangle: 'warning',
-  Users: 'group',
+  People: 'group',
   Laboratory: 'Biotech',
   Clipboard: 'assignment',
   Clock: 'schedule',
@@ -13,7 +13,8 @@ export const TASK_ICON_NAMES: Record<string, string> = {
   Activity: 'trending_up',
   Phone: 'Call',
   Eye: 'visibility',
-  Bone: 'accessibility_new'
+  Bone: 'accessibility_new',
+  Email: 'mail'
 };
 
 export const TASK_ICON_OPTIONS = Object.keys(TASK_ICON_NAMES);

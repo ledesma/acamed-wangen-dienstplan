@@ -8,7 +8,7 @@ describe('icsUtils', () => {
         {
           date: '2024-06-15',
           shiftName: 'Morning',
-          shiftTimes: '8:00 AM - 4:00 PM',
+          shiftTimes: '08:00 - 16:00',
           tasks: 'Patient Care, Documentation'
         }
       ];
@@ -40,13 +40,13 @@ describe('icsUtils', () => {
         {
           date: '2024-06-15',
           shiftName: 'Morning',
-          shiftTimes: '8:00 AM - 4:00 PM',
+          shiftTimes: '08:00 - 16:00',
           tasks: 'Task 1'
         },
         {
           date: '2024-06-16',
           shiftName: 'Evening',
-          shiftTimes: '4:00 PM - 10:00 PM',
+          shiftTimes: '16:00 - 22:00',
           tasks: 'Task 2'
         }
       ];
@@ -62,7 +62,7 @@ describe('icsUtils', () => {
         {
           date: '2024-06-15',
           shiftName: 'Morning',
-          shiftTimes: '8:00 AM - 4:00 PM',
+          shiftTimes: '08:00 - 16:00',
           tasks: 'Patient Care'
         }
       ];

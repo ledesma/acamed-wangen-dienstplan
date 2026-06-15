@@ -17,7 +17,7 @@ const AdminTasks: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     icon: 'Heart',
-    isActive: true
+    is_active: true
   });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const AdminTasks: React.FC = () => {
     setFormData({
       name: task.name,
       icon: task.icon,
-      isActive: task.isActive
+      is_active: task.is_active
     });
     setShowModal(true);
   };
@@ -66,7 +66,7 @@ const AdminTasks: React.FC = () => {
     setFormData({
       name: '',
       icon: 'Heart',
-      isActive: true
+      is_active: true
     });
   };
 
@@ -138,10 +138,10 @@ const AdminTasks: React.FC = () => {
                   padding: '2px 8px',
                   borderRadius: 4,
                   fontSize: '0.75rem',
-                  background: task.isActive ? 'var(--color-success)' : 'var(--color-surface-elevated)',
-                  color: task.isActive ? 'white' : 'var(--color-text-secondary)'
+                  background: task.is_active ? 'var(--color-success)' : 'var(--color-surface-elevated)',
+                  color: task.is_active ? 'white' : 'var(--color-text-secondary)'
                 }}>
-                  {task.isActive ? t('active') : t('inactive')}
+                  {task.is_active ? t('active') : t('inactive')}
                 </span>
               </div>
             </div>
@@ -187,8 +187,8 @@ const AdminTasks: React.FC = () => {
                   <input
                     type="checkbox"
                     className="checkbox"
-                    checked={formData.isActive}
-                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                    checked={formData.is_active}
+                    onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
                   />
                   {t('active')}
                 </label>

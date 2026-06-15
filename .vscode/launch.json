@@ -17,20 +17,17 @@
         "uriFormat": "%s",
         "action": "debugWithChrome"
       },
+      "autoAttachChildProcesses": true,
+       "smartStep": false,
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "netlify/functions/*": "${workspaceFolder}/netlify/functions/*"
-      }
-    },
-    {
-      "name": "netlify functions:serve",
-      "type": "node",
-      "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
-      "outFiles": ["${workspaceFolder}/.netlify/functions-serve/**/*.js"],
-      "program": "/home/ledesma/.nvm/versions/node/v24.16.0/bin/netlify",
-      "args": ["functions:serve"],
-      "console": "integratedTerminal"
+      },
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+
     }
   ]
 }

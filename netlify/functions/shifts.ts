@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
+import { getShifts, createShift, updateShift, deleteShift, getUserFromRequest, requireAdmin } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -25,29 +25,24 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-    const data = await getStorageData();
-
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.shifts), { status: 200, headers });
+      return new Response(JSON.stringify(await getShifts()), { status: 200, headers });
     }
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
       const newShift = { ...body, id: `shift-${Date.now()}` };
-      data.shifts.push(newShift);
-      await setStorageData(data);
-      return new Response(JSON.stringify(newShift), { status: 201, headers });
+      const result = await createShift(newShift);
+      return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.shifts.findIndex((s: any) => s.id === id);
-      if (index === -1) {
+      const result = await updateShift(id, updates);
+      if (!result[0]) {
         return new Response(JSON.stringify({ error: `Shift not found ${id}` }), { status: 404, headers });
       }
-      data.shifts[index] = { ...data.shifts[index], ...updates };
-      await setStorageData(data);
-      return new Response(JSON.stringify(data.shifts[index]), { status: 200, headers });
+      return new Response(JSON.stringify(result[0]), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -55,11 +50,7 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.shifts = data.shifts.filter((s: any) => s.id !== id);
-      data.rosterEntries = data.rosterEntries.map((e: any) =>
-        e.shiftId === id ? { ...e, shiftId: null } : e
-      );
-      await setStorageData(data);
+      await deleteShift(id);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 

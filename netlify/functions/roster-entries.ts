@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
+import { getRosterEntries, createRosterEntry, updateRosterEntry, deleteRosterEntry, getUserFromRequest, requireAdmin } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -25,29 +25,24 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-    const data = await getStorageData();
-
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.rosterEntries), { status: 200, headers });
+      return new Response(JSON.stringify(await getRosterEntries()), { status: 200, headers });
     }
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
       const newEntry = { ...body, id: `entry-${Date.now()}` };
-      data.rosterEntries.push(newEntry);
-      await setStorageData(data);
-      return new Response(JSON.stringify(newEntry), { status: 201, headers });
+      const result = await createRosterEntry(newEntry);
+      return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.rosterEntries.findIndex((e: any) => e.id === id);
-      if (index === -1) {
-        return new Response(JSON.stringify({ error: 'Roster entry not found ${id}' }), { status: 404, headers });
+      const result = await updateRosterEntry(id, updates);
+      if (!result[0]) {
+        return new Response(JSON.stringify({ error: `Roster entry not found ${id}` }), { status: 404, headers });
       }
-      data.rosterEntries[index] = { ...data.rosterEntries[index], ...updates };
-      await setStorageData(data);
-      return new Response(JSON.stringify(data.rosterEntries[index]), { status: 200, headers });
+      return new Response(JSON.stringify(result[0]), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -55,8 +50,7 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.rosterEntries = data.rosterEntries.filter((e: any) => e.id !== id);
-      await setStorageData(data);
+      await deleteRosterEntry(id);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 

@@ -112,9 +112,6 @@ const Header: React.FC = () => {
         </div>
         {user && (
           <div className="user-menu">
-            <div className="avatar">
-              {user.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-            </div>
             <span style={{ fontWeight: 500 }}>{user.name}</span>
             <button className="btn-icon" onClick={logout} title={t('logout')}>
               <LogOut size={20} />

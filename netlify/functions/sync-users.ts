@@ -1,6 +1,6 @@
 import type { Context } from '@netlify/functions';
 import { getUser } from '@netlify/identity';
-import { getStorageData, setStorageData } from './shared';
+import { getUserByEmail, createUser, updateUser, getUsers } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,6 @@ export default async (req: Request, _context: Context) => {
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
-
   try {
     const identityUser = await getUser();
     if (!identityUser) {
@@ -20,16 +19,13 @@ export default async (req: Request, _context: Context) => {
     }
 
     const identityRoles = (identityUser as any).app_metadata?.roles || [];
-
-    const data = await getStorageData();
     const email = identityUser.email;
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'No email found' }), { status: 400, headers });
     }
 
-    let synced = false;
-    const existingUser = data.users.find((e: any) => e.email === email);
+    const existingUser = await getUserByEmail(email);
 
     if (!existingUser) {
       const newUser = {
@@ -39,24 +35,15 @@ export default async (req: Request, _context: Context) => {
         roles: identityRoles,
         createdAt: new Date().toISOString()
       };
-      data.users.push(newUser);
-      synced = true;
-    } else {
-      if (existingUser.inviteSent) {
-        existingUser.inviteSent = false;
-        synced = true;
-      }
+      await createUser(newUser);
+      return await buildResponse(true)
+    } else if (existingUser.inviteSent) {
+        await updateUser(existingUser.id, { inviteSent: false });
+        return await buildResponse(true)
     }
 
-    if (synced) {
-      await setStorageData(data);
-    }
+    return await buildResponse(false)
 
-    return new Response(JSON.stringify({
-      success: true,
-      synced,
-      users: data.users
-    }), { status: 200, headers });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
@@ -64,3 +51,13 @@ export default async (req: Request, _context: Context) => {
     });
   }
 };
+
+async function buildResponse (synced: boolean): Promise<Response> {
+  const users = await getUsers();
+  return new Response(JSON.stringify({
+    success: true,
+    synced: synced,
+    users: users
+  }), { status: 200, headers });
+
+}

@@ -118,7 +118,7 @@ export const api = {
   async getRosterEntry(userId: string, date: string) {
     const entries = await apiFetch('/roster-entries', { method: 'GET' });
     return entries.find(
-      (e: any) => e.userId === userId && e.date === date
+      (e: any) => e.user_id === userId && e.date === date
     );
   }
 };

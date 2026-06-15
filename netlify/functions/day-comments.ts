@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getDayComments, setDayComments, getUserFromRequest, requireAdmin } from './shared';
+import { getDayComments, upsertDayComment, deleteDayComment, getUserFromRequest, requireAdmin } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -33,13 +33,12 @@ export default async (req: Request, _context: Context) => {
       if (!date) {
         return new Response(JSON.stringify({ error: 'Date required' }), { status: 400, headers });
       }
-      const comments = await getDayComments();
-      if (comment) {
-        comments[date] = comment;
+      if (comment && comment.trim() !== '') {
+        await upsertDayComment(date, comment);
       } else {
-        delete comments[date];
+        await deleteDayComment(date);
       }
-      await setDayComments(comments);
+      const comments = await getDayComments();
       return new Response(JSON.stringify(comments), { status: 200, headers });
     }
 

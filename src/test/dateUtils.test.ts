@@ -106,17 +106,17 @@ describe('dateUtils', () => {
   });
 
   describe('formatTime', () => {
-    it('should format 24h time to 12h format', () => {
-      expect(formatTime('08:00')).toBe('8:00 AM');
-      expect(formatTime('14:30')).toBe('2:30 PM');
-      expect(formatTime('00:00')).toBe('12:00 AM');
-      expect(formatTime('12:00')).toBe('12:00 PM');
+    it('should format time in 24h format', () => {
+      expect(formatTime('08:00')).toBe('08:00');
+      expect(formatTime('14:30')).toBe('14:30');
+      expect(formatTime('00:00')).toBe('00:00');
+      expect(formatTime('12:00')).toBe('12:00');
     });
   });
 
   describe('formatTimeRange', () => {
     it('should format time range', () => {
-      expect(formatTimeRange('08:00', '16:00')).toBe('8:00 AM - 4:00 PM');
+      expect(formatTimeRange('08:00', '16:00')).toBe('08:00 - 16:00');
     });
   });
 
@@ -126,7 +126,7 @@ describe('dateUtils', () => {
         { from: '08:00', to: '12:00' },
         { from: '17:00', to: '21:00' }
       ];
-      expect(formatShiftTimes(times)).toBe('8:00 AM - 12:00 PM, 5:00 PM - 9:00 PM');
+      expect(formatShiftTimes(times)).toBe('08:00 - 12:00, 17:00 - 21:00');
     });
   });
 });
