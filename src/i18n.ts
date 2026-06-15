@@ -87,6 +87,8 @@ const resources = {
       onboardingIncomplete: 'Onboarding unvollständig',
       inviteUser: 'Benutzer einladen',
       copyCalendarUrl: 'Kalender-URL kopieren',
+      german: 'Deutsch',
+      english: 'Englisch',
       days_short: {
         0: 'So', 
         1: 'Mo', 
@@ -191,6 +193,8 @@ const resources = {
       onboardingIncomplete: 'Onboarding incomplete',
       inviteUser: 'Invite User',
       copyCalendarUrl: 'Copy calendar URL',
+      german: 'German',
+      english: 'English',
       days_short: {
         0: 'Sun', 
         1: 'Mon', 
