@@ -1,0 +1,2 @@
+insert into users (id, name, email, roles) values ('admin-1', 'Javier', 'javier@ledesma.ch', ARRAY['admin']);
+insert into users (id, name, email, roles) values ('user-1', 'Caro', 'caro@ledesma.ch', ARRAY['admin', 'employee']);

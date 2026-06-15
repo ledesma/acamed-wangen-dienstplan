@@ -4,42 +4,9 @@ import { ChevronLeft, ChevronRight, MessageSquare, PencilIcon, RefreshCw } from 
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
-import { getWeekDates, formatDate, isToday, getDayName, formatShiftTimes, getMonthName } from '../utils/dateUtils';
+import { getWeekDates, formatDate, isToday, getDayName, getMonthName } from '../utils/dateUtils';
 import { getTaskIcon } from '../utils/iconUtils';
-
-const DraggableLegendItem: React.FC<{ shift: Shift; isAdmin: boolean }> = ({ shift, isAdmin }) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!isAdmin) {
-      e.preventDefault();
-      return;
-    }
-    e.dataTransfer.setData('text/plain', JSON.stringify({ shiftId: shift.id, shift }));
-    e.dataTransfer.effectAllowed = 'copy';
-    ref.current?.classList.add('dragging');
-  };
-
-  const handleDragEnd = () => {
-    ref.current?.classList.remove('dragging');
-  };
-
-  return (
-    <div
-      ref={ref}
-      draggable={isAdmin}
-      className={`legend-item interactable ${!isAdmin ? 'legend-item-disabled' : ''}`}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="legend-color" style={{ backgroundColor: shift.color }} />
-      <div className="legend-info">
-        <span className="legend-name">{shift.name}</span>
-        <span className="legend-time">{formatShiftTimes(shift.times)}</span>
-      </div>
-    </div>
-  );
-};
+import Legend from '../components/Legend';
 
 const DroppableCell: React.FC<{
   userId: string;
@@ -58,7 +25,7 @@ const DroppableCell: React.FC<{
   const [showTaskEditor, setShowTaskEditor] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
 
-  const activeTasks = entry?.activeTaskIds || [];
+  const activeTasks = entry?.active_task_ids || [];
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -87,7 +54,7 @@ const DroppableCell: React.FC<{
   };
 
   const handleClick = () => {
-    if (isAdmin && entry?.shiftId) {
+    if (isAdmin && entry?.shift_id) {
       setSelectedTaskIds([...activeTasks]);
       setShowTaskEditor(true);
     }
@@ -275,13 +242,13 @@ refreshUsers();
     const shift = shifts.find(s => s.id === shiftId);
     if (!shift) return;
 
-    const existingEntry = entries.find(e => e.userId === userId && e.date === date);
+    const existingEntry = entries.find(e => e.user_id === userId && e.date === date);
     
     const entryData = {
       userId,
       date,
       shiftId,
-      activeTaskIds: shift.defaultTaskIds
+      activeTaskIds: shift.default_task_ids
     };
 
     if (existingEntry) {
@@ -295,12 +262,12 @@ refreshUsers();
   };
 
   const toggleTask = async (userId: string, date: string, taskId: string) => {
-    const entry = entries.find(e => e.userId === userId && e.date === date);
+    const entry = entries.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
-    const activeTaskIds = entry.activeTaskIds.includes(taskId)
-      ? entry.activeTaskIds.filter(id => id !== taskId)
-      : [...entry.activeTaskIds, taskId];
+    const activeTaskIds = entry.active_task_ids.includes(taskId)
+      ? entry.active_task_ids.filter(id => id !== taskId)
+      : [...entry.active_task_ids, taskId];
 
     await api.updateRosterEntry(entry.id, { activeTaskIds });
     await refreshUsers();
@@ -308,7 +275,7 @@ refreshUsers();
   };
 
   const saveTasks = async (userId: string, date: string, taskIds: string[]) => {
-    const entry = entries.find(e => e.userId === userId && e.date === date);
+    const entry = entries.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
     await api.updateRosterEntry(entry.id, { activeTaskIds: taskIds });
@@ -317,7 +284,7 @@ refreshUsers();
   };
 
   const clearCell = async (userId: string, date: string) => {
-    const entry = entries.find(e => e.userId === userId && e.date === date);
+    const entry = entries.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
     await api.updateRosterEntry(entry.id, { shiftId: null, activeTaskIds: [] });
@@ -351,12 +318,12 @@ refreshUsers();
   };
 
   const getEntryForCell = (userId: string, date: string) => {
-    return entries.find(e => e.userId === userId && e.date === date);
+    return entries.find(e => e.user_id === userId && e.date === date);
   };
 
   const getShiftForEntry = (entry: RosterEntry | undefined) => {
-    if (!entry?.shiftId) return undefined;
-    return shifts.find(s => s.id === entry.shiftId);
+    if (!entry?.shift_id) return undefined;
+    return shifts.find(s => s.id === entry.shift_id);
   };
 
   if (loading) {
@@ -419,9 +386,6 @@ refreshUsers();
           {rosterUsers.map(user => (
             <React.Fragment key={user.id}>
               <div className="employee-cell">
-                <div className="avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                  {user.name.split(' ').map(n => n[0]).join('')}
-                </div>
                 {user.name}
               </div>
               {weekDates.map((date, index) => {
@@ -450,28 +414,11 @@ refreshUsers();
           ))}
         </div>
 
-        <div className="legend">
-          <div className="legend-section">
-            <div className="legend-label">{t('shifts')}</div>
-            <div className="legend-items">
-
-              {shifts.filter(s => s.isActive).map(shift => (
-                <DraggableLegendItem key={shift.id} shift={shift} isAdmin={isAdmin} />
-              ))}
-            </div>
-          </div>
-          <div className="legend-section">
-            <div className="legend-label">{t('tasks')}</div>
-            <div className="legend-items">
-              {tasks.map(task => (
-                <div key={task.id} className="legend-item small">
-                  <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
-                  <span className="legend-name">{task.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <Legend
+          shifts={shifts}
+          tasks={tasks}
+          draggable={isAdmin}
+        />
       </div>
 
       {showCommentEditor && (

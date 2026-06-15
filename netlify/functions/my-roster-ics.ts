@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData } from './shared';
+import { getTasks, getShifts, getRosterEntries, getUsers } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Content-Type': 'text/calendar; charset=utf-8',
@@ -23,9 +23,8 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'user parameter required (email or userId)' }), { status: 400 });
     }
 
-    const data = await getStorageData();
-
-    const user = data.users.find((e: any) =>
+    const users = await getUsers();
+    const user = users.find((e: any) =>
       e.email === userIdentifier || e.id === userIdentifier
     );
 
@@ -33,8 +32,12 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
-    const userEntries = data.rosterEntries
-      .filter((e: any) => e.userId === user.id)
+    const rosterEntries = await getRosterEntries();
+    const shifts = await getShifts();
+    const tasks = await getTasks();
+
+    const userEntries = rosterEntries
+      .filter((e: any) => e.user_id === user.id)
       .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
     const lines: string[] = [
@@ -64,11 +67,11 @@ export default async (req: Request, _context: Context) => {
     ];
 
     for (const entry of userEntries) {
-      const shift = data.shifts.find((s: any) => s.id === entry.shiftId);
+      const shift = shifts.find((s: any) => s.id === entry.shift_id);
       if (!shift) continue;
 
-      const entryTasks = (entry.activeTaskIds || [])
-        .map((id: string) => data.tasks.find((t: any) => t.id === id))
+      const entryTasks = (entry.active_task_ids || [])
+        .map((id: string) => tasks.find((t: any) => t.id === id))
         .filter(Boolean);
 
       const dateStr = entry.date.replace(/-/g, '');
@@ -81,7 +84,7 @@ export default async (req: Request, _context: Context) => {
       lines.push(`DTEND;VALUE=DATE:${dateStr}`);
       lines.push(`SUMMARY:${shift.name}`);
 
-      const description = [shift.times.map(t => `${t.from} - ${t.to}`).join('; '), entryTasks.map((t: any) => t.name).join('; ')].filter(Boolean).join('\n');
+      const description = [shift.times.map((t: any) => `${t.from} - ${t.to}`).join('; '), entryTasks.map((t: any) => t.name).join('; ')].filter(Boolean).join('\n');
       if (description) {
         lines.push(`DESCRIPTION:${description}`);
       }

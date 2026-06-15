@@ -18,6 +18,7 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@netlify/blobs": "^10.7.9",
+    "@netlify/database": "^1.0.0",
     "@netlify/edge-functions": "^3.0.8",
     "@netlify/functions": "^3.0.0",
     "@netlify/identity": "^1.2.0",

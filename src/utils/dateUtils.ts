@@ -88,10 +88,7 @@ export const getMonthDates = (date: Date): { date: Date | null; isEmpty: boolean
 
 export const formatTime = (time: string): string => {
   const [hours, minutes] = time.split(':');
-  const h = parseInt(hours);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 || 12;
-  return `${h12}:${minutes} ${ampm}`;
+  return `${hours}:${minutes}`;
 };
 
 export const formatTimeRange = (from: string, to: string): string => {

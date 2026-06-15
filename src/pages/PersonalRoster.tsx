@@ -4,8 +4,8 @@ import { Calendar, ChevronLeft, ChevronRight, List, RefreshCw } from 'lucide-rea
 import { useAuth } from '../context/AuthContext';
 import { useRoster } from '../context/RosterContext';
 import { RosterEntry, Task } from '../types';
-import { getMonthDates, formatDate, isToday, formatShiftTimes, getMonthName } from '../utils/dateUtils';
-import { getTaskIcon } from '../utils/iconUtils';
+import { getMonthDates, formatDate, isToday, getMonthName } from '../utils/dateUtils';
+import Legend from '../components/Legend';
 
 type ViewMode = 'month' | 'list';
 
@@ -20,16 +20,16 @@ const PersonalRoster: React.FC = () => {
     refreshUsers();
   }, []);
 
-  const userEntries = rosterEntries.filter(e => e.userId === user?.id);
+  const userEntries = rosterEntries.filter(e => e.user_id === user?.id);
   const monthDates = getMonthDates(currentDate);
 
   const getShiftForEntry = (entry: RosterEntry) => {
-    if (!entry.shiftId) return null;
-    return shifts.find(s => s.id === entry.shiftId);
+    if (!entry.shift_id) return null;
+    return shifts.find(s => s.id === entry.shift_id);
   };
 
   const getTasksForEntry = (entry: RosterEntry) => {
-    return entry.activeTaskIds
+    return entry.active_task_ids
       .map(id => tasks.find(t => t.id === id))
       .filter(Boolean) as Task[];
   };
@@ -186,33 +186,7 @@ const PersonalRoster: React.FC = () => {
         </div>
       )}
 
-      <div className="legend">
-        <div className="legend-section">
-          <div className="legend-label">{t('shifts')}</div>
-          <div className="legend-items">
-            {shifts.filter(s => s.isActive).map(shift => (
-              <div key={shift.id} className="legend-item">
-                <div className="legend-color" style={{ backgroundColor: shift.color }} />
-                <div className="legend-info">
-                  <span className="legend-name">{shift.name}</span>
-                  <span className="legend-time">{formatShiftTimes(shift.times)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="legend-section">
-          <div className="legend-label">{t('tasks')}</div>
-          <div className="legend-items">
-            {tasks.map(task => (
-              <div key={task.id} className="legend-item small">
-                <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
-                <span className="legend-name">{task.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <Legend shifts={shifts} tasks={tasks} />
 
 
     </div>

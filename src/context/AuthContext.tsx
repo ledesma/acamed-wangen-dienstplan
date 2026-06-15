@@ -32,7 +32,6 @@ const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User 
     email: identityUser.email,
     roles,
     name: identityUser.name || user.name,
-    avatar: user.avatar
   };
 };
 

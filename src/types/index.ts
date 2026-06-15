@@ -3,9 +3,8 @@ export interface UserRecord {
   name: string;
   email: string;
   roles: ('admin' | 'employee')[];
-  avatar?: string;
-  createdAt: string;
-  inviteSent?: boolean;
+  created_at: string;
+  invite_sent?: boolean;
 }
 
 export interface ShiftTime {
@@ -17,24 +16,24 @@ export interface Shift {
   id: string;
   name: string;
   times: ShiftTime[];
-  defaultTaskIds: string[];
+  default_task_ids: string[];
   color: string;
-  isActive: boolean;
+  is_active: boolean;
 }
 
 export interface Task {
   id: string;
   name: string;
   icon: string;
-  isActive: boolean;
+  is_active: boolean;
 }
 
 export interface RosterEntry {
   id: string;
-  userId: string;
+  user_id: string;
   date: string;
-  shiftId: string | null;
-  activeTaskIds: string[];
+  shift_id: string | null;
+  active_task_ids: string[];
   comment?: string;
 }
 
@@ -43,5 +42,4 @@ export interface User {
   email: string;
   roles: ('admin' | 'employee')[];
   name: string;
-  avatar?: string;
 }

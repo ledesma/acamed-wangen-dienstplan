@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
+import { getTasks, createTask, updateTask, deleteTask, getUserFromRequest, requireAdmin } from '../lib/shared';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -25,29 +25,24 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-    const data = await getStorageData();
-
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(data.tasks), { status: 200, headers });
+      return new Response(JSON.stringify(await getTasks()), { status: 200, headers });
     }
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
       const newTask = { ...body, id: `task-${Date.now()}` };
-      data.tasks.push(newTask);
-      await setStorageData(data);
-      return new Response(JSON.stringify(newTask), { status: 201, headers });
+      const result = await createTask(newTask);
+      return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.tasks.findIndex((t: any) => t.id === id);
-      if (index === -1) {
+      const result = await updateTask(id, updates);
+      if (!result[0]) {
         return new Response(JSON.stringify({ error: `Task not found ${id}` }), { status: 404, headers });
       }
-      data.tasks[index] = { ...data.tasks[index], ...updates };
-      await setStorageData(data);
-      return new Response(JSON.stringify(data.tasks[index]), { status: 200, headers });
+      return new Response(JSON.stringify(result[0]), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -55,16 +50,7 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.tasks = data.tasks.filter((t: any) => t.id !== id);
-      data.shifts = data.shifts.map((s: any) => ({
-        ...s,
-        defaultTaskIds: s.defaultTaskIds.filter((tid: string) => tid !== id)
-      }));
-      data.rosterEntries = data.rosterEntries.map((e: any) => ({
-        ...e,
-        activeTaskIds: e.activeTaskIds.filter((tid: string) => tid !== id)
-      }));
-      await setStorageData(data);
+      await deleteTask(id);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 

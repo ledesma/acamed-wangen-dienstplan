@@ -15,8 +15,6 @@ import AdminTasks from './pages/AdminTasks';
 const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, isLoading } = useAuth();
 
-  console.log('ProtectedRoute - isLoading:', isLoading, 'user:', user);
-
   if (isLoading) {
     return (
       <div className="loading">

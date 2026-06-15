@@ -35,10 +35,10 @@ export const RosterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const exportICS = (user: { name: string; id: string }) => {
-    const userEntries = rosterEntries.filter(e => e.userId === user.id);
+    const userEntries = rosterEntries.filter(e => e.user_id === user.id);
     const userEntriesWithDetails = userEntries.map(entry => {
-      const shift = shifts.find(s => s.id === entry.shiftId);
-      const entryTasks = entry.activeTaskIds
+      const shift = shifts.find(s => s.id === entry.shift_id);
+      const entryTasks = entry.active_task_ids
         .map(id => tasks.find(t => t.id === id))
         .filter(Boolean) as Task[];
       return {

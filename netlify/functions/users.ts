@@ -1,7 +1,8 @@
 import type { Context } from '@netlify/functions';
 import { admin, getIdentityConfig } from '@netlify/identity';
-import { getStorageData, setStorageData, getUserFromRequest, requireAdmin } from './shared';
+import { getUsers, getUserByEmail, createUser, updateUser, deleteUser, getUserFromRequest, requireAdmin } from '../lib/shared';
 import axios from 'axios';
+
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -28,16 +29,14 @@ export default async (req: Request, _context: Context) => {
       requireAdmin(user);
     }
 
-    const data = await getStorageData();
-
     if (req.method === 'GET') {
-      let users = data.users;
+      let users = await getUsers();
       try {
         const identityUsers = await admin.listUsers();
         const identityEmails = new Set(identityUsers.map((u: any) => u.email));
         users = users.map((u: any) => ({
           ...u,
-          inviteSent: !identityEmails.has(u.email)
+          invite_sent: !identityEmails.has(u.email)
         }));
       } catch (e) {
         // If Identity check fails, use stored value
@@ -55,7 +54,7 @@ export default async (req: Request, _context: Context) => {
 
       const filteredRoles = roles.filter((r: string) => r === 'admin' || r === 'employee');
 
-      const existingUser = data.users.find((e: any) => e.email === email);
+      const existingUser = await getUserByEmail(email);
       if (existingUser) {
         return new Response(JSON.stringify({ error: 'A user with this email already exists' }), { status: 409, headers });
       }
@@ -63,7 +62,6 @@ export default async (req: Request, _context: Context) => {
       let inviteSent = false;
 
       try {
-        
         const config = getIdentityConfig();
         if (!config) {
           throw new Error('Identity not configured');
@@ -71,7 +69,7 @@ export default async (req: Request, _context: Context) => {
 
         await axios.post(`${config.url}/invite`, { email }, {
           headers: { authorization: `Bearer ${config.token}` }
-        });   
+        });
 
         inviteSent = true;
         console.log(`[invite-user] Invite sent to ${email}`);
@@ -88,22 +86,20 @@ export default async (req: Request, _context: Context) => {
         inviteSent: true
       };
 
-      data.users.push(newUser);
-      await setStorageData(data);
+      const result = await createUser(newUser);
+      const createdUser = result[0];
 
-      const responseBody = {
+      return new Response(JSON.stringify({
         success: true,
-        user: newUser,
-        inviteSent
-      };
-
-      return new Response(JSON.stringify(responseBody), { status: 201, headers });
+        user: createdUser,
+        invite_sent
+      }), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const index = data.users.findIndex((e: any) => e.id === id);
-      if (index === -1) {
+      const was = await getUserById(id);
+      if (!was) {
         return new Response(JSON.stringify({ error: `User not found ${id}` }), { status: 404, headers });
       }
 
@@ -111,10 +107,11 @@ export default async (req: Request, _context: Context) => {
         updates.roles = updates.roles.filter((r: string) => r === 'admin' || r === 'employee');
       }
 
-      const wasRoleUpdate = updates.roles && JSON.stringify(updates.roles.sort()) !== JSON.stringify((data.users[index].roles || []).sort());
-      const wasNameUpdate = updates.name && updates.name !== data.users[index].name;
-      data.users[index] = { ...data.users[index], ...updates };
-      await setStorageData(data);
+      const wasRoleUpdate = updates.roles && JSON.stringify(updates.roles.sort()) !== JSON.stringify((was.roles || []).sort());
+      const wasNameUpdate = updates.name && updates.name !== was.name;
+
+      const result = await updateUser(id, updates);
+      const updatedUser = result[0];
 
       if ((wasRoleUpdate || wasNameUpdate) && updates.email) {
         try {
@@ -142,7 +139,7 @@ export default async (req: Request, _context: Context) => {
         }
       }
 
-      return new Response(JSON.stringify(data.users[index]), { status: 200, headers });
+      return new Response(JSON.stringify(updatedUser), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -150,9 +147,7 @@ export default async (req: Request, _context: Context) => {
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
       }
-      data.users = data.users.filter((e: any) => e.id !== id);
-      data.rosterEntries = data.rosterEntries.filter((e: any) => e.userId !== id);
-      await setStorageData(data);
+      await deleteUser(id);
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });
     }
 
