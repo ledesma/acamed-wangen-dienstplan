@@ -31,35 +31,28 @@ export const createTask = async (data: {
   `;
 };
 
-export const updateTask = async (id: string, updates: {
-  name?: string;
-  icon?: string;
-  isActive?: boolean;
-}) => {
-  const setClauses: string[] = [];
-  const values: any[] = [];
-  let paramIndex = 1;
-
-  if (updates.name !== undefined) {
-    setClauses.push(`name = $${paramIndex++}`);
-    values.push(updates.name);
-  }
-  if (updates.icon !== undefined) {
-    setClauses.push(`icon = $${paramIndex++}`);
-    values.push(updates.icon);
-  }
-  if (updates.isActive !== undefined) {
-    setClauses.push(`is_active = $${paramIndex++}`);
-    values.push(updates.isActive);
-  }
-
-  if (setClauses.length === 0) return null;
-
-  values.push(id);
-  return await db.sql`
-    UPDATE tasks SET ${db.sql.unsafe(setClauses.join(', '))} WHERE id = $${paramIndex}
+export const updateTaskName = async (id: string, name: string) => {
+  const result = await db.sql`
+    UPDATE tasks SET name = ${name} WHERE id = ${id}
     RETURNING id, name, icon, is_active
   `;
+  return result[0] || null;
+};
+
+export const updateTaskIcon = async (id: string, icon: string) => {
+  const result = await db.sql`
+    UPDATE tasks SET icon = ${icon} WHERE id = ${id}
+    RETURNING id, name, icon, is_active
+  `;
+  return result[0] || null;
+};
+
+export const updateTaskActive = async (id: string, isActive: boolean) => {
+  const result = await db.sql`
+    UPDATE tasks SET is_active = ${isActive} WHERE id = ${id}
+    RETURNING id, name, icon, is_active
+  `;
+  return result[0] || null;
 };
 
 export const deleteTask = async (id: string) => {

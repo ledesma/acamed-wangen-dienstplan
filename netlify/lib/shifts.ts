@@ -33,45 +33,44 @@ export const createShift = async (data: {
   `;
 };
 
-export const updateShift = async (id: string, updates: {
-  name?: string;
-  times?: any[];
-  defaultTaskIds?: string[];
-  color?: string;
-  isActive?: boolean;
-}) => {
-  const setClauses: string[] = [];
-  const values: any[] = [];
-  let paramIndex = 1;
-
-  if (updates.name !== undefined) {
-    setClauses.push(`name = $${paramIndex++}`);
-    values.push(updates.name);
-  }
-  if (updates.times !== undefined) {
-    setClauses.push(`times = $${paramIndex++}`);
-    values.push(JSON.stringify(updates.times));
-  }
-  if (updates.defaultTaskIds !== undefined) {
-    setClauses.push(`default_task_ids = $${paramIndex++}`);
-    values.push(updates.defaultTaskIds);
-  }
-  if (updates.color !== undefined) {
-    setClauses.push(`color = $${paramIndex++}`);
-    values.push(updates.color);
-  }
-  if (updates.isActive !== undefined) {
-    setClauses.push(`is_active = $${paramIndex++}`);
-    values.push(updates.isActive);
-  }
-
-  if (setClauses.length === 0) return null;
-
-  values.push(id);
-  return await db.sql`
-    UPDATE shifts SET ${db.sql.unsafe(setClauses.join(', '))} WHERE id = $${paramIndex}
+export const updateShiftName = async (id: string, name: string) => {
+  const result = await db.sql`
+    UPDATE shifts SET name = ${name} WHERE id = ${id}
     RETURNING id, name, times, default_task_ids, color, is_active
   `;
+  return result[0] || null;
+};
+
+export const updateShiftTimes = async (id: string, times: any[]) => {
+  const result = await db.sql`
+    UPDATE shifts SET times = ${JSON.stringify(times)} WHERE id = ${id}
+    RETURNING id, name, times, default_task_ids, color, is_active
+  `;
+  return result[0] || null;
+};
+
+export const updateShiftDefaultTaskIds = async (id: string, defaultTaskIds: string[]) => {
+  const result = await db.sql`
+    UPDATE shifts SET default_task_ids = ${defaultTaskIds} WHERE id = ${id}
+    RETURNING id, name, times, default_task_ids, color, is_active
+  `;
+  return result[0] || null;
+};
+
+export const updateShiftColor = async (id: string, color: string) => {
+  const result = await db.sql`
+    UPDATE shifts SET color = ${color} WHERE id = ${id}
+    RETURNING id, name, times, default_task_ids, color, is_active
+  `;
+  return result[0] || null;
+};
+
+export const updateShiftActive = async (id: string, isActive: boolean) => {
+  const result = await db.sql`
+    UPDATE shifts SET is_active = ${isActive} WHERE id = ${id}
+    RETURNING id, name, times, default_task_ids, color, is_active
+  `;
+  return result[0] || null;
 };
 
 export const deleteShift = async (id: string) => {

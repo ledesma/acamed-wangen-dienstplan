@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getTasks, createTask, updateTask, deleteTask } from '../lib/tasks';
+import { getTasks, createTask, updateTaskName, updateTaskIcon, updateTaskActive, deleteTask } from '../lib/tasks';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -39,11 +39,22 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const result = await updateTask(id, updates);
-      if (!result[0]) {
-        return new Response(JSON.stringify({ error: `Task not found ${id}` }), { status: 404, headers });
+      let updatedTask: any = null;
+
+      if (updates.name !== undefined) {
+        updatedTask = await updateTaskName(id, updates.name);
       }
-      return new Response(JSON.stringify(result[0]), { status: 200, headers });
+      if (updates.icon !== undefined) {
+        updatedTask = await updateTaskIcon(id, updates.icon);
+      }
+      if (updates.is_active !== undefined) {
+        updatedTask = await updateTaskActive(id, updates.is_active);
+      }
+
+      if (!updatedTask) {
+        return new Response(JSON.stringify({ error: `Task not found or no changes ${id}` }), { status: 404, headers });
+      }
+      return new Response(JSON.stringify(updatedTask), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {

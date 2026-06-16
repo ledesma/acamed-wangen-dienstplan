@@ -40,40 +40,36 @@ export const createUser = async (data: {
   `;
 };
 
-export const updateUser = async (id: string, updates: {
-  name?: string;
-  email?: string;
-  roles?: string[];
-  inviteSent?: boolean;
-}) => {
-  const setClauses: string[] = [];
-  const values: any[] = [];
-  let paramIndex = 1;
-
-  if (updates.name !== undefined) {
-    setClauses.push(`name = $${paramIndex++}`);
-    values.push(updates.name);
-  }
-  if (updates.email !== undefined) {
-    setClauses.push(`email = $${paramIndex++}`);
-    values.push(updates.email);
-  }
-  if (updates.roles !== undefined) {
-    setClauses.push(`roles = $${paramIndex++}`);
-    values.push(updates.roles);
-  }
-  if (updates.inviteSent !== undefined) {
-    setClauses.push(`invite_sent = $${paramIndex++}`);
-    values.push(updates.inviteSent);
-  }
-
-  if (setClauses.length === 0) return null;
-
-  values.push(id);
-  return await db.sql`
-    UPDATE users SET ${db.sql.unsafe(setClauses.join(', '))} WHERE id = $${paramIndex}
+export const updateUserName = async (id: string, name: string) => {
+  const result = await db.sql`
+    UPDATE users SET name = ${name} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent
   `;
+  return result[0] || null;
+};
+
+export const updateUserEmail = async (id: string, email: string) => {
+  const result = await db.sql`
+    UPDATE users SET email = ${email} WHERE id = ${id}
+    RETURNING id, name, email, roles, created_at, invite_sent
+  `;
+  return result[0] || null;
+};
+
+export const updateUserRoles = async (id: string, roles: string[]) => {
+  const result = await db.sql`
+    UPDATE users SET roles = ${roles} WHERE id = ${id}
+    RETURNING id, name, email, roles, created_at, invite_sent
+  `;
+  return result[0] || null;
+};
+
+export const updateUserInviteSent = async (id: string, inviteSent: boolean) => {
+  const result = await db.sql`
+    UPDATE users SET invite_sent = ${inviteSent} WHERE id = ${id}
+    RETURNING id, name, email, roles, created_at, invite_sent
+  `;
+  return result[0] || null;
 };
 
 export const deleteUser = async (id: string) => {

@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getShifts, createShift, updateShift, deleteShift } from '../lib/shifts';
+import { getShifts, createShift, updateShiftName, updateShiftTimes, updateShiftDefaultTaskIds, updateShiftColor, updateShiftActive, deleteShift } from '../lib/shifts';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -39,11 +39,28 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const result = await updateShift(id, updates);
-      if (!result[0]) {
-        return new Response(JSON.stringify({ error: `Shift not found ${id}` }), { status: 404, headers });
+      let updatedShift: any = null;
+
+      if (updates.name !== undefined) {
+        updatedShift = await updateShiftName(id, updates.name);
       }
-      return new Response(JSON.stringify(result[0]), { status: 200, headers });
+      if (updates.times !== undefined) {
+        updatedShift = await updateShiftTimes(id, updates.times);
+      }
+      if (updates.default_task_ids !== undefined) {
+        updatedShift = await updateShiftDefaultTaskIds(id, updates.default_task_ids);
+      }
+      if (updates.color !== undefined) {
+        updatedShift = await updateShiftColor(id, updates.color);
+      }
+      if (updates.is_active !== undefined) {
+        updatedShift = await updateShiftActive(id, updates.is_active);
+      }
+
+      if (!updatedShift) {
+        return new Response(JSON.stringify({ error: `Shift not found or no changes ${id}` }), { status: 404, headers });
+      }
+      return new Response(JSON.stringify(updatedShift), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {

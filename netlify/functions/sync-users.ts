@@ -1,6 +1,6 @@
 import type { Context } from '@netlify/functions';
 import { getUser } from '@netlify/identity';
-import { getUserByEmail, createUser, updateUser, getUsers } from '../lib/users';
+import { getUserByEmail, createUser, updateUserInviteSent, getUsers } from '../lib/users';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +38,7 @@ export default async (req: Request, _context: Context) => {
       await createUser(newUser);
       return await buildResponse(true)
     } else if (existingUser.inviteSent) {
-        await updateUser(existingUser.id, { inviteSent: false });
+        await updateUserInviteSent(existingUser.id, false);
         return await buildResponse(true)
     }
 

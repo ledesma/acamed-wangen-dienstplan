@@ -1,6 +1,6 @@
 import type { Context } from '@netlify/functions';
 import { admin, getIdentityConfig } from '@netlify/identity';
-import { getUsers, getUserByEmail, createUser, updateUser, deleteUser } from '../lib/users';
+import { getUsers, getUserByEmail, createUser, updateUserName, updateUserEmail, updateUserRoles, updateUserInviteSent, deleteUser } from '../lib/users';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 import axios from 'axios';
 
@@ -108,13 +108,26 @@ export default async (req: Request, _context: Context) => {
         updates.roles = updates.roles.filter((r: string) => r === 'admin' || r === 'employee');
       }
 
-      const wasRoleUpdate = updates.roles && JSON.stringify(updates.roles.sort()) !== JSON.stringify((was.roles || []).sort());
-      const wasNameUpdate = updates.name && updates.name !== was.name;
+      let updatedUser: any = null;
 
-      const result = await updateUser(id, updates);
-      const updatedUser = result[0];
+      if (updates.name !== undefined) {
+        updatedUser = await updateUserName(id, updates.name);
+      }
+      if (updates.email !== undefined) {
+        updatedUser = await updateUserEmail(id, updates.email);
+      }
+      if (updates.roles !== undefined) {
+        updatedUser = await updateUserRoles(id, updates.roles);
+      }
+      if (updates.inviteSent !== undefined) {
+        updatedUser = await updateUserInviteSent(id, updates.inviteSent);
+      }
 
-      if ((wasRoleUpdate || wasNameUpdate) && updates.email) {
+      if (!updatedUser) {
+        return new Response(JSON.stringify({ error: `User not found or no changes ${id}` }), { status: 404, headers });
+      }
+
+      if ((updates.roles || updates.name) && updates.email) {
         try {
           const identityUsers = await admin.listUsers();
           const identityUser = identityUsers.find((u: any) => u.email === updates.email);
@@ -124,10 +137,10 @@ export default async (req: Request, _context: Context) => {
             const existingUserMetadata = (currentUser as any).user_metadata || {};
             const updatesToApp: Record<string, any> = {};
             const updatesToUser: Record<string, any> = {};
-            if (wasRoleUpdate) {
+            if (updates.roles) {
               updatesToApp.roles = updates.roles;
             }
-            if (wasNameUpdate) {
+            if (updates.name) {
               updatesToUser.full_name = updates.name;
             }
             await admin.updateUser(identityUser.id, {
