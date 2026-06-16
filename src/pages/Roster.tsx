@@ -339,6 +339,16 @@ const Roster: React.FC = () => {
     setShowCommentEditor(false);
   };
 
+  const clearComment = async () => {
+    await dayCommentApi.deleteComment(selectedDate);
+    setDayComments(prev => {
+      const next = { ...prev };
+      delete next[selectedDate];
+      return next;
+    });
+    setShowCommentEditor(false);
+  };
+
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentWeekStart);
     newDate.setDate(newDate.getDate() + direction * 7);
@@ -489,12 +499,9 @@ const Roster: React.FC = () => {
             </div>
             
             <div className="task-editor-actions">
-              <button className="btn btn-danger" onClick={() => {
-                setCommentText('');
-                saveComment();
-              }}>
-                Clear
-              </button>
+               <button className="btn btn-danger" onClick={clearComment}>
+                 Clear
+               </button>
               <button className="btn btn-primary" onClick={saveComment}>
                 Save
               </button>

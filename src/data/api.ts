@@ -133,6 +133,13 @@ export const dayCommentApi = {
       method: 'POST',
       body: JSON.stringify({ date, comment })
     });
+  },
+
+  async deleteComment(date: string) {
+    return apiFetch('/day-comments', {
+      method: 'POST',
+      body: JSON.stringify({ date, comment: '' })
+    });
   }
 };
 
