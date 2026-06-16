@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { getTasks, createTask, updateTask, deleteTask, getUserFromRequest, requireAdmin } from '../lib/shared';
+import { getTasks, createTask, updateTask, deleteTask } from '../lib/tasks';
+import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',

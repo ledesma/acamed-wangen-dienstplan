@@ -1,6 +1,7 @@
 import type { Context } from '@netlify/functions';
 import { admin, getIdentityConfig } from '@netlify/identity';
-import { getUsers, getUserByEmail, createUser, updateUser, deleteUser, getUserFromRequest, requireAdmin } from '../lib/shared';
+import { getUsers, getUserByEmail, createUser, updateUser, deleteUser } from '../lib/users';
+import { getUserFromRequest, requireAdmin } from '../lib/auth';
 import axios from 'axios';
 
 

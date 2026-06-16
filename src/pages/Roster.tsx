@@ -195,7 +195,7 @@ const Roster: React.FC = () => {
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(today.setDate(diff));
   });
-  const [shifts, setShifts] = useState<Shift[]>([]);
+ const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [dayComments, setDayComments] = useState<Record<string, string>>({});
@@ -205,11 +205,16 @@ const Roster: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [commentText, setCommentText] = useState('');
 
+  const shiftsRef = useRef(shifts);
+  const entriesRef = useRef(entries);
+  shiftsRef.current = shifts;
+  entriesRef.current = entries;
+
   const weekDates = getWeekDates(currentWeekStart);
   const rosterUsers = users.filter(u => u.roles?.includes('employee'));
 
   useEffect(() => {
-refreshUsers();
+    refreshUsers();
     loadData();
   }, []);
 
@@ -239,30 +244,48 @@ refreshUsers();
   };
 
   const assignShift = async (userId: string, date: string, shiftId: string) => {
-    const shift = shifts.find(s => s.id === shiftId);
+    const currentShifts = shiftsRef.current;
+    const currentEntries = entriesRef.current;
+    const shift = currentShifts.find(s => s.id === shiftId);
     if (!shift) return;
 
-    const existingEntry = entries.find(e => e.user_id === userId && e.date === date);
+    const existingEntry = currentEntries.find(e => e.user_id === userId && e.date === date);
     
-    const entryData = {
-      userId,
-      date,
-      shiftId,
-      activeTaskIds: shift.default_task_ids
-    };
-
     if (existingEntry) {
-      await api.updateRosterEntry(existingEntry.id, entryData);
+      await api.updateRosterEntry(existingEntry.id, {
+        userId,
+        date,
+        shiftId,
+        activeTaskIds: shift.default_task_ids
+      });
+      setEntries(prev => prev.map(e => e.id === existingEntry.id ? {
+        id: e.id,
+        user_id: e.user_id,
+        date: e.date,
+        shift_id: shiftId,
+        active_task_ids: shift.default_task_ids
+      } : e));
     } else {
-      await api.createRosterEntry(entryData);
+      const entryData = {
+        userId,
+        date,
+        shiftId,
+        activeTaskIds: shift.default_task_ids
+      };
+      const result = await api.createRosterEntry(entryData);
+      const newEntry: RosterEntry = {
+        id: result?.id || `temp-${Date.now()}`,
+        user_id: userId,
+        date: date,
+        shift_id: shiftId,
+        active_task_ids: shift.default_task_ids
+      };
+      setEntries(prev => [...prev, newEntry]);
     }
-
-    await refreshUsers();
-    await loadData();
   };
 
   const toggleTask = async (userId: string, date: string, taskId: string) => {
-    const entry = entries.find(e => e.user_id === userId && e.date === date);
+    const entry = entriesRef.current.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
     const activeTaskIds = entry.active_task_ids.includes(taskId)
@@ -270,26 +293,35 @@ refreshUsers();
       : [...entry.active_task_ids, taskId];
 
     await api.updateRosterEntry(entry.id, { activeTaskIds });
-    await refreshUsers();
-    await loadData();
+    setEntries(prev => prev.map(e => e.id === entry.id ? {
+      id: e.id,
+      user_id: e.user_id,
+      date: e.date,
+      shift_id: e.shift_id,
+      active_task_ids: activeTaskIds
+    } : e));
   };
 
   const saveTasks = async (userId: string, date: string, taskIds: string[]) => {
-    const entry = entries.find(e => e.user_id === userId && e.date === date);
+    const entry = entriesRef.current.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
     await api.updateRosterEntry(entry.id, { activeTaskIds: taskIds });
-    await refreshUsers();
-    await loadData();
+    setEntries(prev => prev.map(e => e.id === entry.id ? {
+      id: e.id,
+      user_id: e.user_id,
+      date: e.date,
+      shift_id: e.shift_id,
+      active_task_ids: taskIds
+    } : e));
   };
 
   const clearCell = async (userId: string, date: string) => {
-    const entry = entries.find(e => e.user_id === userId && e.date === date);
+    const entry = entriesRef.current.find(e => e.user_id === userId && e.date === date);
     if (!entry) return;
 
-    await api.updateRosterEntry(entry.id, { shiftId: null, activeTaskIds: [] });
-    await refreshUsers();
-    await loadData();
+    await api.deleteRosterEntry(entry.id);
+    setEntries(prev => prev.filter(e => e.id !== entry.id));
   };
 
   const openCommentEditor = (date: string) => {
@@ -300,7 +332,7 @@ refreshUsers();
 
   const saveComment = async () => {
     await dayCommentApi.setComment(selectedDate, commentText);
-    await loadData();
+    setDayComments(prev => ({ ...prev, [selectedDate]: commentText }));
     setShowCommentEditor(false);
   };
 

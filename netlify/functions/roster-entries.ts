@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { getRosterEntries, createRosterEntry, updateRosterEntry, deleteRosterEntry, getUserFromRequest, requireAdmin } from '../lib/shared';
+import { getRosterEntries, createRosterEntry, updateRosterEntryShift, updateRosterEntryTasks, updateRosterEntryComment, updateRosterEntryShiftAndTasks, deleteRosterEntry } from '../lib/roster';
+import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -38,11 +39,31 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const result = await updateRosterEntry(id, updates);
-      if (!result[0]) {
-        return new Response(JSON.stringify({ error: `Roster entry not found ${id}` }), { status: 404, headers });
+      console.log('id:', id);
+      console.log('updates:', updates);
+      
+      let result: any = null;
+      
+      if (updates.shiftId !== undefined && updates.activeTaskIds !== undefined) {
+        result = await updateRosterEntryShiftAndTasks(id, updates.shiftId, updates.activeTaskIds);
+      } else {
+        if (updates.shiftId !== undefined) {
+          result = await updateRosterEntryShift(id, updates.shiftId);
+        }
+        if (updates.activeTaskIds !== undefined) {
+          const tasksResult = await updateRosterEntryTasks(id, updates.activeTaskIds);
+          result = tasksResult[0] || result;
+        }
+        if (updates.comment !== undefined) {
+          const commentResult = await updateRosterEntryComment(id, updates.comment);
+          result = commentResult[0] || result;
+        }
       }
-      return new Response(JSON.stringify(result[0]), { status: 200, headers });
+      
+      if (!result) {
+        return new Response(JSON.stringify({ error: `Roster entry not found or no changes ${id}` }), { status: 404, headers });
+      }
+      return new Response(JSON.stringify(result), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
@@ -56,7 +77,13 @@ export default async (req: Request, _context: Context) => {
 
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('roster-entries error:', error);
+    return new Response(JSON.stringify({
+      error: error.message,
+      type: typeof error,
+      code: error.code,
+      hint: error.hint
+    }), {
       status: error.message.includes('Forbidden') ? 403 : 500,
       headers
     });

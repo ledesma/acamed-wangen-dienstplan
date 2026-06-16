@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { getDayComments, upsertDayComment, deleteDayComment, getUserFromRequest, requireAdmin } from '../lib/shared';
+import { getDayComments, upsertDayComment, deleteDayComment } from '../lib/comments';
+import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',

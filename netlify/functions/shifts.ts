@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { getShifts, createShift, updateShift, deleteShift, getUserFromRequest, requireAdmin } from '../lib/shared';
+import { getShifts, createShift, updateShift, deleteShift } from '../lib/shifts';
+import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',

@@ -1,5 +1,8 @@
 import type { Context } from '@netlify/functions';
-import { getTasks, getShifts, getRosterEntries, getUsers } from '../lib/shared';
+import { getTasks } from '../lib/tasks';
+import { getShifts } from '../lib/shifts';
+import { getRosterEntries } from '../lib/roster';
+import { getUsers } from '../lib/users';
 
 const headers: Record<string, string> = {
   'Content-Type': 'text/calendar; charset=utf-8',

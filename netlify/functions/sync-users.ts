@@ -1,6 +1,6 @@
 import type { Context } from '@netlify/functions';
 import { getUser } from '@netlify/identity';
-import { getUserByEmail, createUser, updateUser, getUsers } from '../lib/shared';
+import { getUserByEmail, createUser, updateUser, getUsers } from '../lib/users';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
