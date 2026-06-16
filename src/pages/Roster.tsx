@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, MessageSquare, PencilIcon, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
@@ -161,31 +161,20 @@ const DroppableCell: React.FC<{
   );
 };
 
-const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => void; dayComment?: string }> = ({ 
+const DayHeader: React.FC<{ date: Date; isAdmin: boolean; footnoteIndex?: number; onCommentClick: () => void }> = ({ 
   date, 
   isAdmin, 
-  onCommentClick,
-  dayComment 
+  footnoteIndex,
+  onCommentClick
 }) => {
   return (
-    <div className={`week-header-cell ${isToday(date) ? 'today' : ''}`}>
+    <div className={`week-header-cell ${isToday(date) ? 'today' : ''} ${isAdmin ? 'clickable' : ''}`} onClick={isAdmin ? onCommentClick : undefined}>
       <div className="header-top">
         <span className="title">{getDayName(date, true)}, {date.getDate()}</span>
-        {isAdmin && (
-          <button 
-            className="day-comment-btn" 
-            onClick={onCommentClick}
-            title="Add day comment"
-          >
-            <PencilIcon size={12} />
-          </button>
+        {footnoteIndex !== undefined && (
+          <span className="footnote-marker">{footnoteIndex})</span>
         )}
       </div>
-      {dayComment && (
-        <div className="day-comment-text" title={dayComment}>
-          <span>{dayComment}</span>
-        </div>
-      )}
     </div>
   );
 };
@@ -216,6 +205,16 @@ const Roster: React.FC = () => {
 
   const weekDates = getWeekDates(currentWeekStart);
   const rosterUsers = users.filter(u => u.roles?.includes('employee'));
+
+  const footnoteMap: Record<string, number> = {};
+  let footnoteCounter = 0;
+  for (const date of weekDates) {
+    const dateStr = formatDate(date);
+    if (dayComments[dateStr]) {
+      footnoteCounter++;
+      footnoteMap[dateStr] = footnoteCounter;
+    }
+  }
 
   useEffect(() => {
     refreshUsers();
@@ -414,8 +413,8 @@ const Roster: React.FC = () => {
               key={date.toISOString()} 
               date={date} 
               isAdmin={isAdmin}
+              footnoteIndex={footnoteMap[formatDate(date)]}
               onCommentClick={() => openCommentEditor(formatDate(date))}
-              dayComment={dayComments[formatDate(date)]}
             />
           ))}
 
@@ -455,10 +454,26 @@ const Roster: React.FC = () => {
           tasks={tasks}
           draggable={isAdmin}
         />
+
+        {Object.keys(footnoteMap).length > 0 && (
+          <div className="roster-footnotes">
+            {Object.entries(footnoteMap).map(([dateStr, index]) => (
+              <div key={dateStr} className="footnote-item">
+                <span className="footnote-number">{index})</span>
+                <span className="footnote-date">{getDayName(new Date(dateStr + 'T00:00:00'), true)}, {new Date(dateStr + 'T00:00:00').getDate()}.{(new Date(dateStr + 'T00:00:00').getMonth() + 1).toString().padStart(2, '0')}.{new Date(dateStr + 'T00:00:00').getFullYear()}:</span>
+                <span className="footnote-text">{dayComments[dateStr]}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showCommentEditor && (
-        <div className="task-editor-overlay">
+        <div className="task-editor-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowCommentEditor(false);
+          }
+        }}>
           <div className="task-editor">
             <h3>Day Comment - {selectedDate}</h3>
             
