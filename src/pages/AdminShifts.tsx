@@ -5,6 +5,7 @@ import { Shift, Task } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { formatShiftTimes } from '../utils/dateUtils';
+import { getTaskIcon } from '../utils/iconUtils';
 import { useTranslation } from 'react-i18next';
 
 const COLORS = [
@@ -188,8 +189,15 @@ const AdminShifts: React.FC = () => {
                   <Clock size={14} />
                   {formatShiftTimes(shift.times)}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                  {t('defaultTasksCount', { count: shift.default_task_ids.length })}
+                <div className="task-icons">
+                  {shift.default_task_ids.map(taskId => {
+                    const task = tasks.find(t => t.id === taskId);
+                    return task ? (
+                      <div key={taskId} className="task-icon" title={task.name}>
+                        <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                      </div>
+                    ) : null;
+                  })}
                 </div>
               </div>
             </div>
