@@ -86,7 +86,7 @@ const Header: React.FC = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Settings size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              {t('admin')}
+              {t('adminPage')}
             </Link>
           )}
         </div>

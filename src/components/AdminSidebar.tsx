@@ -14,7 +14,6 @@ const AdminSidebar: React.FC = () => {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-title">{t('admin')}</div>
       <nav className="sidebar-nav">
         {links.map(({ to, icon: Icon, label }) => (
           <Link
