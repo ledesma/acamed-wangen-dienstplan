@@ -126,67 +126,55 @@ const AdminUsers: React.FC = () => {
           </button>
         </div>
 
-        <table className="table">
-          <thead>
-            <tr>
-              <th>{t('name')}</th>
-              <th>{t('email')}</th>
-              <th>{t('roles')}</th>
-              <th>{t('actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user.id}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {user.name}
-                  </div>
-                </td>
-                <td>{user.email}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {(user.roles || []).map(r => (
-                      <span key={r} style={{
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                        fontSize: '0.75rem',
-                        background: r === 'admin' ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
-                        color: r === 'admin' ? 'white' : 'var(--color-text-primary)'
-                      }}>
-                        {t(r)}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td>
-                  {user.invite_sent && (
-                    <span style={{
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      fontSize: '0.75rem',
-                      background: '#f59e0b',
-                      color: 'white',
-                      marginRight: 8
-                    }}>
-                      {t('onboardingIncomplete')}
-                    </span>
-                  )}
-                  <div className="table-actions">
-                    <button className="btn-icon" onClick={() => handleEdit(user)}>
-                      <Edit2 size={16} />
+        <div className="grid-3">
+          {users.map(user => (
+            <div key={user.id} className="card">
+              <div className="card-header">
+                <div className="card-title">
+                  <span style={{ fontSize: '1.5rem' }}>👤</span>
+                  {user.name}
+                </div>
+                <div className="table-actions">
+                  <button className="btn-icon" onClick={() => handleEdit(user)}>
+                    <Edit2 size={16} />
+                  </button>
+                  {currentUser?.email !== user.email && (
+                    <button className="btn-icon" onClick={() => handleDelete(user.id)}>
+                      <Trash2 size={16} />
                     </button>
-                    {currentUser?.email !== user.email && (
-                      <button className="btn-icon" onClick={() => handleDelete(user.id)}>
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  )}
+                </div>
+              </div>
+              <div className="card-description" style={{ marginBottom: 8 }}>
+                {user.email}
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {(user.roles || []).map(r => (
+                  <span key={r} style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: '0.75rem',
+                    background: 'var(--color-primary)',
+                    color: 'white'
+                  }}>
+                    {t(r)}
+                  </span>
+                ))}
+                {user.invite_sent && (
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: '0.75rem',
+                    background: '#f59e0b',
+                    color: 'white'
+                  }}>
+                    {t('onboardingIncomplete')}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {showModal && (
           <Modal
