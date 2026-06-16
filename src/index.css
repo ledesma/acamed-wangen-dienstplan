@@ -473,16 +473,28 @@ body {
 }
 
 .week-header-cell {
-  padding: 12px 8px;
+  padding: 2px 4px;
   text-align: center;
   background: var(--color-surface-elevated);
   border-bottom: 1px solid var(--color-border);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   position: relative;
+  height: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
+  gap: 1px;
 }
 .week-header-cell .title {
   text-transform: uppercase;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .week-header-cell.today {
@@ -504,7 +516,7 @@ body {
 }
 
 .employee-cell {
-  padding: 12px;
+  padding: 2px 8px;
   border-bottom: 1px solid var(--color-border);
   border-right: 1px solid var(--color-border);
   display: flex;
@@ -512,17 +524,28 @@ body {
   gap: 8px;
   background: var(--color-surface-elevated);
   font-weight: 500;
+  font-size: 0.8rem;
+  height: 28px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .day-cell {
-  padding: 8px;
-  min-height: 80px;
+  padding: 2px 4px;
+  min-height: 28px;
+  height: 28px;
   border-bottom: 1px solid var(--color-border);
   border-right: 1px solid var(--color-border);
+  border-radius: 4px;
   position: relative;
   transition: all 0.15s;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
+
+
 
 .day-cell:hover {
   background: var(--color-surface-elevated);
@@ -533,31 +556,21 @@ body {
 }
 
 .day-cell.drag-over {
-  background: rgba(14, 165, 233, 0.1);
-  border: 2px dashed var(--color-primary);
+  background: rgba(14, 165, 233, 0.15) !important;
 }
 
-.day-cell.weekend {
-  background: rgba(128, 128, 128, 0.05);
-}
+
 
 .day-cell-content {
-  height: 100%;
-  border-radius: var(--radius-sm);
-  padding: 4px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 4px;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.shift-indicator {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: white;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
+
 
 .day-comment-btn {
   padding: 2px 4px;
@@ -596,21 +609,23 @@ body {
 .task-icons {
   display: flex;
   gap: 2px;
-  flex-wrap: wrap;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .task-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   line-height: 1;
+}
+
+.task-icon .material-symbols-rounded {
+  font-size: 12px;
 }
 
 .task-icon .material-symbols-rounded {

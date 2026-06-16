@@ -81,7 +81,8 @@ const DroppableCell: React.FC<{
   return (
     <>
       <div
-        className={`day-cell ${isOver ? 'drag-over' : ''} ${isWeekend ? 'weekend' : ''}`}
+        className={`day-cell ${isOver ? 'drag-over' : ''} ${isWeekend ? 'weekend' : ''} ${shift ? 'has-shift' : ''}`}
+        style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -89,23 +90,22 @@ const DroppableCell: React.FC<{
       >
         {shift && (
           <div className="day-cell-content">
-            <div className="shift-indicator" style={{ backgroundColor: shift.color }}>
-              {shift.name}
-            </div>
-            <div className="task-icons">
-              {activeTasks.map(taskId => {
-                const task = tasks.find(t => t.id === taskId);
-                return task ? (
-                  <div
-                    key={taskId}
-                    className="task-icon"
-                    title={task.name}
-                  >
-                    <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
-                  </div>
-                ) : null;
-              })}
-            </div>
+            {activeTasks.length > 0 && (
+              <div className="task-icons">
+                {activeTasks.map(taskId => {
+                  const task = tasks.find(t => t.id === taskId);
+                  return task ? (
+                    <div
+                      key={taskId}
+                      className="task-icon"
+                      title={task.name}
+                    >
+                      <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -169,19 +169,23 @@ const DayHeader: React.FC<{ date: Date; isAdmin: boolean; onCommentClick: () => 
 }) => {
   return (
     <div className={`week-header-cell ${isToday(date) ? 'today' : ''}`}>
-      <div className="title">{getDayName(date, true)}, {date.getDate()}</div>
-      <div className="day-comment-text" title={dayComment}>
-      <span>{dayComment}</span>
-      {isAdmin && (
-        <button 
-          className="day-comment-btn" 
-          onClick={onCommentClick}
-          title="Add day comment"
-        >
-          <PencilIcon size={12} />
-        </button>
+      <div className="header-top">
+        <span className="title">{getDayName(date, true)}, {date.getDate()}</span>
+        {isAdmin && (
+          <button 
+            className="day-comment-btn" 
+            onClick={onCommentClick}
+            title="Add day comment"
+          >
+            <PencilIcon size={12} />
+          </button>
         )}
       </div>
+      {dayComment && (
+        <div className="day-comment-text" title={dayComment}>
+          <span>{dayComment}</span>
+        </div>
+      )}
     </div>
   );
 };
