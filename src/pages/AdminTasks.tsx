@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { Task } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { TASK_ICON_OPTIONS, getTaskIcon } from '../utils/iconUtils';
+import AdminSidebar from '../components/AdminSidebar';
 
 const AdminTasks: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -80,33 +79,7 @@ const AdminTasks: React.FC = () => {
 
   return (
     <div className="admin-layout">
-      <aside className="sidebar">
-        <div className="sidebar-title">Administration</div>
-        <nav className="sidebar-nav">
-          <Link
-            to="/admin/users"
-            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
-          >
-            <Users size={18} />
-            {t('users')}
-          </Link>
-          <Link
-            to="/admin/shifts"
-            className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
-          >
-            <Calendar size={18} />
-            {t('shifts')}
-          </Link>
-          <Link
-            to="/admin/tasks"
-            className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
-          >
-            <CheckSquare size={18} />
-            {t('tasks')}
-          </Link>
-        </nav>
-      </aside>
-
+      <AdminSidebar />
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
           <h1 className="page-title">{t('tasks')}</h1>

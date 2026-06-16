@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2 } from 'lucide-react';
+
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { UserRecord } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import AdminSidebar from '../components/AdminSidebar';
 
 const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +102,7 @@ const AdminUsers: React.FC = () => {
   if (error) {
     return (
       <div className="admin-layout">
+        <AdminSidebar />
         <div className="admin-content">
           <div className="error-message" style={{ padding: 24, textAlign: 'center' }}>
             <h2>Failed to load data</h2>
@@ -115,33 +116,7 @@ const AdminUsers: React.FC = () => {
 
   return (
     <div className="admin-layout">
-      <aside className="sidebar">
-        <div className="sidebar-title">{t('admin')}</div>
-        <nav className="sidebar-nav">
-          <Link
-            to="/admin/users"
-            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
-          >
-            <Users size={18} />
-            {t('users')}
-          </Link>
-          <Link
-            to="/admin/shifts"
-            className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
-          >
-            <Calendar size={18} />
-            {t('shifts')}
-          </Link>
-          <Link
-            to="/admin/tasks"
-            className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
-          >
-            <CheckSquare size={18} />
-            {t('tasks')}
-          </Link>
-        </nav>
-      </aside>
-
+      <AdminSidebar />
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
           <h1 className="page-title">{t('users')}</h1>

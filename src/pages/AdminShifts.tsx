@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Users, Calendar, CheckSquare, Plus, Edit2, Trash2, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Clock } from 'lucide-react';
 import { Shift, Task } from '../types';
 import api from '../data/api';
 import Modal from '../components/Modal';
 import { formatShiftTimes } from '../utils/dateUtils';
 import { getTaskIcon } from '../utils/iconUtils';
 import { useTranslation } from 'react-i18next';
+import AdminSidebar from '../components/AdminSidebar';
 
 const COLORS = [
   '#22c55e', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444',
@@ -15,7 +15,6 @@ const COLORS = [
 
 const AdminShifts: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,33 +130,7 @@ const AdminShifts: React.FC = () => {
 
   return (
     <div className="admin-layout">
-      <aside className="sidebar">
-        <div className="sidebar-title">{t('admin')}</div>
-        <nav className="sidebar-nav">
-          <Link
-            to="/admin/users"
-            className={`sidebar-link ${location.pathname === '/admin/users' ? 'active' : ''}`}
-          >
-            <Users size={18} />
-            {t('users')}
-          </Link>
-          <Link
-            to="/admin/shifts"
-            className={`sidebar-link ${location.pathname === '/admin/shifts' ? 'active' : ''}`}
-          >
-            <Calendar size={18} />
-            {t('shifts')}
-          </Link>
-          <Link
-            to="/admin/tasks"
-            className={`sidebar-link ${location.pathname === '/admin/tasks' ? 'active' : ''}`}
-          >
-            <CheckSquare size={18} />
-            {t('tasks')}
-          </Link>
-        </nav>
-      </aside>
-
+      <AdminSidebar />
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
           <h1 className="page-title">{t('shifts')}</h1>

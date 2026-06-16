@@ -1418,7 +1418,16 @@ body {
   }
 
   .sidebar {
-    display: none;
+    display: block;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-link {
+    padding: 8px 12px;
   }
 
   .month-grid {
