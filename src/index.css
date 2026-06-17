@@ -1197,6 +1197,11 @@ body {
   gap: 8px;
 }
 
+.list-shift-time {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
 .list-tasks {
   display: flex;
   gap: 4px;

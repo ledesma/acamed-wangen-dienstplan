@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, ChevronLeft, ChevronRight, List, MessageSquare, RefreshCw } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, List, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useRoster } from '../context/RosterContext';
 import { RosterEntry, Task } from '../types';
@@ -48,7 +48,9 @@ const PersonalRoster: React.FC = () => {
       .filter(Boolean) as Task[];
   };
 
-  const sortedEntries = [...userEntries].sort((a, b) => a.date.localeCompare(b.date));
+  const monthStart = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+  const sortedEntries = [...userEntries].filter(e => e.date >= monthStart && e.date <= monthEnd).sort((a, b) => a.date.localeCompare(b.date));
 
   const footnoteMap: Record<string, number> = {};
   let footnoteCounter = 0;
@@ -177,7 +179,11 @@ const PersonalRoster: React.FC = () => {
               const entryTasks = getTasksForEntry(entry);
               
               return (
-                <div key={entry.id} className="list-entry">
+                <div
+                  key={entry.id}
+                  className="list-entry"
+                  style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
+                >
                   <div className="list-date">
                     {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', {
                       weekday: 'short',
@@ -186,12 +192,7 @@ const PersonalRoster: React.FC = () => {
                     })}
                   </div>
                   {shift && (
-                    <div className="list-shift">
-                      <div
-                        className="card-color"
-                        style={{ backgroundColor: shift.color, width: 12, height: 12 }}
-                      />
-                      <span>{shift.name}</span>
+                    <div className="list-shift-time">
                       <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
                         {formatShiftTimes(shift.times)}
                       </span>
