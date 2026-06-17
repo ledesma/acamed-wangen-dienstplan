@@ -2,10 +2,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { spaFallback } from './vite-plugin-spa-fallback'
-import netlifyPlugin from '@netlify/vite-plugin'
+// import netlifyPlugin from '@netlify/vite-plugin'
 
 export default defineConfig({
-  plugins: [react(), netlifyPlugin()],
+  plugins: [react(), spaFallback()],
   server: {
     port: 5173,
     host: true
