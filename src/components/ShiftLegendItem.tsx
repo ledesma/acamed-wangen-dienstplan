@@ -31,7 +31,7 @@ const ShiftLegendItem: React.FC<ShiftLegendItemProps> = ({
     <div
       ref={ref}
       draggable={draggable}
-      className={`legend-item${draggable ? ' interactable' : ''} ${!draggable ? 'legend-item-disabled' : ''}`}
+      className="legend-item"
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
