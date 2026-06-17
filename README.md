@@ -22,7 +22,7 @@ A modern team roster application with drag-and-drop shift management, personal r
 - Vitest + React Testing Library for tests
 
 ## Getting Started
-
+ 
 ### Installation
 
 ```bash
