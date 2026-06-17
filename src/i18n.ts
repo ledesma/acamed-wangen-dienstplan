@@ -44,7 +44,6 @@ const resources = {
       addComment: 'Kommentar hinzufügen',
       login: 'Anmelden',
       logout: 'Abmelden',
-      register: 'Registrieren',
       email: 'E-Mail',
       password: 'Passwort',
       confirmPassword: 'Passwort bestätigen',
@@ -99,6 +98,7 @@ const resources = {
       passwordResetSuccess: 'Passwort erfolgreich zurückgesetzt! Weiterleitung...',
       passwordResetFailed: 'Passwort konnte nicht zurückgesetzt werden.',
       backToLogin: 'Zurück zur Anmeldung',
+      signingIn: 'Anmelden...',
       days_short: {
         0: 'So', 
         1: 'Mo', 
@@ -160,7 +160,6 @@ const resources = {
       addComment: 'Add Comment',
       login: 'Login',
       logout: 'Logout',
-      register: 'Register',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm Password',
@@ -215,6 +214,7 @@ const resources = {
       passwordResetSuccess: 'Password reset successfully! Redirecting...',
       passwordResetFailed: 'Failed to reset password.',
       backToLogin: 'Back to Login',
+      signingIn: 'Signing in...',
       days_short: {
         0: 'Sun', 
         1: 'Mon', 

@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/roster');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t('login'));
     } finally {
       setLoading(false);
     }
@@ -30,13 +30,13 @@ const Login: React.FC = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">Welcome Back</h1>
+        <h1 className="auth-title">{t('login')}</h1>
         
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
           
           <div className="form-group">
-            <label className="label">Email</label>
+            <label className="label">{t('email')}</label>
             <input
               type="email"
               className="input"
@@ -48,7 +48,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label className="label">Password</label>
+            <label className="label">{t('password')}</label>
             <input
               type="password"
               className="input"
@@ -60,7 +60,7 @@ const Login: React.FC = () => {
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('signingIn') : t('login')}
           </button>
         </form>
 
