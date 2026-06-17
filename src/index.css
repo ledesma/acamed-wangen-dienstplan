@@ -1196,6 +1196,20 @@ body {
   flex-wrap: wrap;
 }
 
+.month-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.month-footnote-marker {
+  padding-left: 3px;
+  
+  color: var(--color-primary);
+  line-height: 1;
+}
+
 .month-entry-wrapper {
   display: flex;
   flex-direction: column;
