@@ -1508,7 +1508,70 @@ body {
   }
 
   .week-grid {
-    grid-template-columns: 100px repeat(7, 1fr);
+    grid-template-columns: 80px repeat(7, 1fr);
+  }
+
+  .week-header-cell {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    height: auto;
+    min-height: 70px;    
+    padding: 8px 2px;
+    text-align: left;
+  }
+
+  .roster-header {
+    font-size: 0.8rem;
+  }
+
+  .roster-nav {
+    font-size: 1rem;
+  }
+
+  .roster-title {
+    width: 100px;
+    font-size: 3vw;
+    text-align: center;
+  }
+
+  .week-header-cell .title {
+    height: 100%;
+  }
+
+  .header-top {
+    height: 100%;
+    flex-direction: row;    
+  }
+
+
+
+  .employee-cell {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+    height: 24px;
+  }
+
+  .day-cell {
+    min-height: 24px;
+    height: 24px;
+    padding: 1px 2px;
+  }
+
+  .day-cell-content {
+    gap: 2px;
+  }
+
+  .task-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .task-icon .material-symbols-rounded {
+    font-size: 10px;
+  }
+
+  .task-icons {
+    display: flex !important;
   }
 
   .admin-layout {
