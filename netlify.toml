@@ -8,11 +8,6 @@
   to = "/.netlify/functions/my-roster-ics/:splat"
   status = 200
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 [build]
   command = "npm run build"
   publish = "dist"
@@ -22,5 +17,23 @@
   command = "npm run dev"
   port = 8888
   targetPort = 5173
+
+[context.production]
+  [[context.production.redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.deploy-preview]
+  [[context.deploy-preview.redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.branch-deploy]
+  [[context.branch-deploy.redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 

@@ -5,11 +5,12 @@ import { spaFallback } from './vite-plugin-spa-fallback'
 import netlifyPlugin from '@netlify/vite-plugin'
 
 export default defineConfig({
-  plugins: [react(), spaFallback()],
+  plugins: [react(), netlifyPlugin()],
   server: {
     port: 5173,
     host: true
   },
+  appType: "spa",
   optimizeDeps: {
     exclude: ['@netlify/functions']
   },
