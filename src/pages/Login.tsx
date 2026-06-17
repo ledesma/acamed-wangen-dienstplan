@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/roster');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('login'));
+      setError(err instanceof Error ? err.message : t('invalidCredentials'));
     } finally {
       setLoading(false);
     }

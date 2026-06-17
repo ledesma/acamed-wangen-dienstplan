@@ -99,6 +99,7 @@ const resources = {
       passwordResetFailed: 'Passwort konnte nicht zurückgesetzt werden.',
       backToLogin: 'Zurück zur Anmeldung',
       signingIn: 'Anmelden...',
+      invalidCredentials: 'Ungültige Anmeldedaten',
       days_short: {
         0: 'So', 
         1: 'Mo', 
@@ -215,6 +216,7 @@ const resources = {
       passwordResetFailed: 'Failed to reset password.',
       backToLogin: 'Back to Login',
       signingIn: 'Signing in...',
+      invalidCredentials: 'Invalid credentials',
       days_short: {
         0: 'Sun', 
         1: 'Mon', 
