@@ -208,6 +208,9 @@ const PersonalRoster: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                  {footnoteMap[entry.date] !== undefined && (
+                    <span className="list-footnote-marker">{footnoteMap[entry.date]})</span>
+                  )}
                 </div>
               );
             })

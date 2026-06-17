@@ -1067,8 +1067,15 @@ body {
 .personal-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+
+/* @media (max-width: 768px) {
+  .personal-header {
+  }
+} */
 
 .view-toggle {
   display: flex;
@@ -1194,6 +1201,13 @@ body {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.list-footnote-marker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .month-cell-content {
