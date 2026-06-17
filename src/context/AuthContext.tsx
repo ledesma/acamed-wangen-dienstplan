@@ -24,7 +24,7 @@ const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User 
   const user = users.find(u => u.email === identityUser.email);
   if (!user) return null;
 
-  const roles = [...(identityUser.roles || [])] as ('admin' | 'employee')[];
+   const roles = [...(user.roles || [])] as ('admin' | 'employee')[];
 
   return {
     id: user.id,
