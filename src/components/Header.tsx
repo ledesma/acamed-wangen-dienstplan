@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { LogOut, Calendar, User, Settings, Menu, X, Globe, Link2 } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, logout, isAdmin, isEmployee } = useAuth();
+  const { showToast } = useToast();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
-  const icsUrl = user ? `${window.location.origin}/my-roster-ics?user=${user.email}` : '';
+  const icsUrl = user ? `${window.location.origin}/my-roster-ics?user=${user.id}` : '';
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -33,7 +35,10 @@ const Header: React.FC = () => {
   const copyIcsUrl = async () => {
     try {
       await navigator.clipboard.writeText(icsUrl);
-    } catch { }
+      showToast(t('calendarUrlCopied'));
+    } catch {
+      showToast(t('copyFailed'), 'error');
+    }
   };
 
   return (

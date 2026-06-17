@@ -1358,6 +1358,16 @@ body {
   border-color: var(--color-success);
 }
 
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;

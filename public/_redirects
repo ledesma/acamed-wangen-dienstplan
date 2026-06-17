@@ -1,3 +1,1 @@
-/my-roster-ics /.netlify/functions/my-roster-ics 200
-/my-roster-ics/* /.netlify/functions/my-roster-ics/:splat 200
 /* /index.html 200

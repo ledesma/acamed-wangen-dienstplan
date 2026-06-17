@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { RosterProvider } from './context/RosterContext';
+import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Join from './pages/Join';
@@ -123,13 +124,15 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <RosterProvider>
-        <div className="app">
-          <AppRoutes />
-        </div>
-      </RosterProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <RosterProvider>
+          <div className="app">
+            <AppRoutes />
+          </div>
+        </RosterProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 
