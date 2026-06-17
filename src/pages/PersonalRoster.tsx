@@ -5,6 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { useRoster } from '../context/RosterContext';
 import { RosterEntry, Task } from '../types';
 import { getMonthDates, formatDate, isToday, getMonthName } from '../utils/dateUtils';
+import { formatShiftTimes } from '../utils/dateUtils';
+import { getTaskIcon } from '../utils/iconUtils';
+import { dayCommentApi } from '../data/api';
 import Legend from '../components/Legend';
 
 type ViewMode = 'month' | 'list';
@@ -15,16 +18,27 @@ const PersonalRoster: React.FC = () => {
   const { rosterEntries, shifts, tasks, refresh } = useRoster();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [dayComments, setDayComments] = useState<Record<string, string>>({});
 
   React.useEffect(() => {
     refreshUsers();
+    loadDayComments();
   }, []);
+
+  const loadDayComments = async () => {
+    try {
+      const comments = await dayCommentApi.getComments();
+      setDayComments(comments || {});
+    } catch {
+      // ignore errors
+    }
+  };
 
   const userEntries = rosterEntries.filter(e => e.user_id === user?.id);
   const monthDates = getMonthDates(currentDate);
 
-  const getShiftForEntry = (entry: RosterEntry) => {
-    if (!entry.shift_id) return null;
+  const getShiftForEntry = (entry: RosterEntry | undefined) => {
+    if (!entry?.shift_id) return null;
     return shifts.find(s => s.id === entry.shift_id);
   };
 
@@ -34,12 +48,29 @@ const PersonalRoster: React.FC = () => {
       .filter(Boolean) as Task[];
   };
 
-  const sortedEntries = [...userEntries].sort((a, b) => a.date.localeCompare(b.date));
+  const monthStart = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+  const sortedEntries = [...userEntries].filter(e => e.date >= monthStart && e.date <= monthEnd).sort((a, b) => a.date.localeCompare(b.date));
+
+  const footnoteMap: Record<string, number> = {};
+  let footnoteCounter = 0;
+  for (const cell of monthDates) {
+    if (!cell.date) continue;
+    const dateStr = formatDate(cell.date);
+    if (dayComments[dateStr]) {
+      footnoteCounter++;
+      footnoteMap[dateStr] = footnoteCounter;
+    }
+  }
 
   const navigateMonth = (direction: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + direction);
     setCurrentDate(newDate);
+  };
+
+  const getEntryForDate = (dateStr: string) => {
+    return userEntries.find(e => e.date === dateStr);
   };
 
   return (
@@ -96,41 +127,41 @@ const PersonalRoster: React.FC = () => {
             }
             
             const dateStr = formatDate(cell.date);
-            const dayEntries = userEntries.filter(e => e.date === dateStr);
-            
+            const entry = getEntryForDate(dateStr);
+            const shift = getShiftForEntry(entry);
+            const entryTasks = entry ? getTasksForEntry(entry) : [];
+            const hasComment = !!dayComments[dateStr];
+
             return (
               <div
                 key={index}
-                className={`month-cell ${isToday(cell.date) ? 'today' : ''} ${cell.date.getDay() == 0 || cell.date.getDay() == 6 ? 'weekend' : ''}`}
+                className={`month-cell ${isToday(cell.date) ? 'today' : ''} ${cell.date.getDay() == 0 || cell.date.getDay() == 6 ? 'weekend' : ''} ${shift ? 'has-shift' : ''}`}
+                style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
               >
-                <div className="month-date">{cell.date.getDate()}</div>
-                <div className="month-entries">
-                  {dayEntries.map(entry => {
-                    const shift = getShiftForEntry(entry);
-                    const entryTasks = getTasksForEntry(entry);
-                    return shift ? (
-                      <div key={entry.id} className="month-entry-wrapper">
-                        <div
-                          className="month-entry"
-                          style={{ backgroundColor: shift.color }}
-                        >
-                          <span>{shift.name}</span>
-                        </div>
-                        <div className="month-task-icons">
-                          {entryTasks.map(task => (
-                            <div
-                              key={task.id}
-                              className="task-icon"
-                              title={task.name}
-                            >
-                              <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null;
-                  })}
+                <div className="month-date">
+                  {cell.date.getDate()}
+                  {footnoteMap[dateStr] !== undefined && (
+                    <sup className="month-footnote-marker">{footnoteMap[dateStr]})</sup>
+                  )}
+
                 </div>
+                {shift && (
+                  <div className="month-cell-content">
+                    {entryTasks.length > 0 && (
+                      <div className="task-icons">
+                        {entryTasks.map(task => (
+                          <div
+                            key={task.id}
+                            className="task-icon"
+                            title={task.name}
+                          >
+                            <span className="material-symbols-rounded">{getTaskIcon(task.icon)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -148,7 +179,11 @@ const PersonalRoster: React.FC = () => {
               const entryTasks = getTasksForEntry(entry);
               
               return (
-                <div key={entry.id} className="list-entry">
+                <div
+                  key={entry.id}
+                  className="list-entry"
+                  style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
+                >
                   <div className="list-date">
                     {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', {
                       weekday: 'short',
@@ -157,12 +192,7 @@ const PersonalRoster: React.FC = () => {
                     })}
                   </div>
                   {shift && (
-                    <div className="list-shift">
-                      <div
-                        className="card-color"
-                        style={{ backgroundColor: shift.color, width: 12, height: 12 }}
-                      />
-                      <span>{shift.name}</span>
+                    <div className="list-shift-time">
                       <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
                         {formatShiftTimes(shift.times)}
                       </span>
@@ -179,10 +209,25 @@ const PersonalRoster: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                  {footnoteMap[entry.date] !== undefined && (
+                    <span className="list-footnote-marker">{footnoteMap[entry.date]})</span>
+                  )}
                 </div>
               );
             })
           )}
+        </div>
+      )}
+
+      {Object.keys(footnoteMap).length > 0 && (
+        <div className="roster-footnotes">
+          {Object.entries(footnoteMap).map(([dateStr, index]) => (
+            <div key={dateStr} className="footnote-item">
+              <span className="footnote-number">{index})</span>
+              <span className="footnote-date">{new Date(dateStr + 'T00:00:00').toLocaleDateString('de-CH', { weekday: 'short', day: 'numeric', month: 'long' })}:</span>
+              <span className="footnote-text">{dayComments[dateStr]}</span>
+            </div>
+          ))}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { User as IdentityUser, getUser, login as identityLogin, signup as identitySignup, logout as identityLogout, onAuthChange } from '@netlify/identity';
+import { User as IdentityUser, getUser, login as identityLogin, logout as identityLogout, onAuthChange } from '@netlify/identity';
 import { User, UserRecord } from '../types';
 import api from '../data/api';
 
@@ -9,7 +9,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
   refreshUsers: () => Promise<void>;
   isAdmin: boolean;
   isEmployee: boolean;
@@ -25,7 +24,7 @@ const mapIdentityUser = (identityUser: IdentityUser, users: UserRecord[]): User 
   const user = users.find(u => u.email === identityUser.email);
   if (!user) return null;
 
-  const roles = [...(identityUser.roles || [])] as ('admin' | 'employee')[];
+   const roles = [...(user.roles || [])] as ('admin' | 'employee')[];
 
   return {
     id: user.id,
@@ -197,14 +196,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    try {
-      await identitySignup(email, password, { full_name: name, user_metadata: { role: 'admin' } });
-    } catch (err: any) {
-      throw new Error(err?.message || 'Registration failed');
-    }
-  };
-
   const refreshUsers = async () => {
     try {
       const users = await api.getUsers();
@@ -227,7 +218,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         logout,
-        register,
         refreshUsers,
         isAdmin: user?.roles?.includes('admin') ?? false,
         isEmployee: user?.roles?.includes('employee') ?? false

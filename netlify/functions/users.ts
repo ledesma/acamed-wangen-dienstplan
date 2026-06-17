@@ -4,7 +4,6 @@ import { getUsers, getUserByEmail, createUser, updateUserName, updateUserEmail, 
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 import axios from 'axios';
 
-
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Authorization, Content-Type',
@@ -68,23 +67,30 @@ export default async (req: Request, _context: Context) => {
           throw new Error('Identity not configured');
         }
 
-        await axios.post(`${config.url}/invite`, { email }, {
+        const response = await axios.post(`${config.url}/invite`, { email }, {
           headers: { authorization: `Bearer ${config.token}` }
         });
 
-        inviteSent = true;
-        console.log(`[invite-user] Invite sent to ${email}`);
+        if (response.status >= 200 && response.status < 300) {
+          inviteSent = true;
+          console.log(`[invite-user] Invite sent to ${email}`);
+        }
       } catch (err: any) {
-        console.warn(`[invite-user] Failed to send invite: ${err.message}`);
+        if (err.response?.status >= 200 && err.response?.status < 300) {
+          inviteSent = true;
+          console.log(`[invite-user] Invite sent to ${email}`);
+        } else {
+          console.warn(`[invite-user] Failed to send invite: ${err.message}`);
+        }
       }
 
       const newUser = {
         id: `emp-${Date.now()}`,
         name,
         email,
-        roles: filteredRoles,
+        roles: filteredRoles.length > 0 ? filteredRoles : ['employee'],
         createdAt: new Date().toISOString(),
-        inviteSent: true
+        inviteSent
       };
 
       const result = await createUser(newUser);
@@ -93,7 +99,7 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({
         success: true,
         user: createdUser,
-        invite_sent
+        invite_sent: inviteSent
       }), { status: 201, headers });
     }
 

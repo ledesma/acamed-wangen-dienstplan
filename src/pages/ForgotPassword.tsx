@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
+import { requestPasswordRecovery } from '@netlify/identity';
 
-const Login: React.FC = () => {
+const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,19 +16,33 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/roster');
+      await requestPasswordRecovery(email);
+      setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('invalidCredentials'));
+      setError(err instanceof Error ? err.message : t('passwordResetFailed'));
     } finally {
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1 className="auth-title">{t('resetPassword')}</h1>
+          <p className="auth-message">{t('resetLinkSent')}</p>
+          <Link to="/login" className="btn btn-primary">
+            {t('backToLogin')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">{t('login')}</h1>
+        <h1 className="auth-title">{t('resetPassword')}</h1>
         
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
@@ -47,29 +59,17 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="label">{t('password')}</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? t('signingIn') : t('login')}
+            {loading ? t('sendResetLink') : t('sendResetLink')}
           </button>
         </form>
 
         <div className="auth-footer">
-          <Link to="/forgot-password">{t('forgotPassword')}</Link>
+          <Link to="/login">{t('backToLogin')}</Link>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default ForgotPassword;

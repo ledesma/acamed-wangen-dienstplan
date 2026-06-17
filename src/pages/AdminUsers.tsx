@@ -50,7 +50,8 @@ const AdminUsers: React.FC = () => {
       setInviteStatus({ success: true, message: 'User updated' });
     } else {
       try {
-        const result = await api.inviteUser(formData.email.split('@')[0], formData.email, ['admin'] as ('admin' | 'employee')[]);
+        const roles = formData.roles.length > 0 ? formData.roles : ['employee'];
+        const result = await api.inviteUser(formData.name || formData.email.split('@')[0], formData.email, roles as ('admin' | 'employee')[]);
         setUsers(prev => [...prev, result.user]);
         if (result.invite_sent) {
           setInviteStatus({ success: true, message: `${t('inviteSentTo')} ${formData.email}` });
@@ -188,16 +189,59 @@ const AdminUsers: React.FC = () => {
                 </div>
               )}
               {!editingUser && (
-                <div className="form-group">
-                  <label className="label">{t('email')}</label>
-                  <input
-                    type="email"
-                    className="input"
-                    value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label className="label">{t('name')}</label>
+                    <input
+                      type="text"
+                      className="input"
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="label">{t('email')}</label>
+                    <input
+                      type="email"
+                      className="input"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="label">{t('roles')}</label>
+                    <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.roles.includes('admin')}
+                          onChange={e => {
+                            const roles = e.target.checked
+                              ? [...formData.roles, 'admin']
+                              : formData.roles.filter(r => r !== 'admin');
+                            setFormData({ ...formData, roles });
+                          }}
+                        />
+                        {t('admin')}
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.roles.includes('employee')}
+                          onChange={e => {
+                            const roles = e.target.checked
+                              ? [...formData.roles, 'employee']
+                              : formData.roles.filter(r => r !== 'employee');
+                            setFormData({ ...formData, roles });
+                          }}
+                        />
+                        {t('employee')}
+                      </label>
+                    </div>
+                  </div>
+                </>
               )}
               {editingUser && (
                 <>
