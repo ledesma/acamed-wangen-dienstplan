@@ -1,27 +1,37 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { updateUser } from '@netlify/identity';
 
-const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
+const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError(t('passwordsDoNotMatch'));
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/roster');
+      await updateUser({ password });
+      navigate('/login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t('passwordResetFailed'));
     } finally {
       setLoading(false);
     }
@@ -30,25 +40,13 @@ const Login: React.FC = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1 className="auth-title">Welcome Back</h1>
+        <h1 className="auth-title">{t('resetPassword')}</h1>
         
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
           
           <div className="form-group">
-            <label className="label">Email</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="label">Password</label>
+            <label className="label">{t('enterNewPassword')}</label>
             <input
               type="password"
               className="input"
@@ -56,20 +54,30 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              minLength={6}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">{t('confirmNewPassword')}</label>
+            <input
+              type="password"
+              className="input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              minLength={6}
             />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('resetPassword') : t('resetPassword')}
           </button>
         </form>
-
-        <div className="auth-footer">
-          <Link to="/forgot-password">{t('forgotPassword')}</Link>
-        </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default ResetPassword;

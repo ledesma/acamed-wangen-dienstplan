@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Join from './pages/Join';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Roster from './pages/Roster';
 import PersonalRoster from './pages/PersonalRoster';
 import AdminUsers from './pages/AdminUsers';
@@ -58,6 +60,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/join" element={<Join />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/roster"
         element={
