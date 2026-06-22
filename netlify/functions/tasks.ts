@@ -30,14 +30,24 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
-      const newTask = { ...body, id: `task-${Date.now()}` };
-      const result = await createTask(newTask);
+      const snakeTask = {
+        id: `task-${Date.now()}`,
+        name: body.name,
+        icon: body.icon,
+        is_active: body.is_active !== undefined ? body.is_active : (body.isActive !== undefined ? body.isActive : true)
+      };
+      const result = await createTask(snakeTask);
       return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const updatedTask = await updateTask(id, updates);
+      const snakeUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) snakeUpdates.name = updates.name;
+      if (updates.icon !== undefined) snakeUpdates.icon = updates.icon;
+      if (updates.is_active !== undefined) snakeUpdates.is_active = updates.is_active;
+      if (updates.isActive !== undefined) snakeUpdates.is_active = updates.isActive;
+      const updatedTask = await updateTask(id, snakeUpdates);
 
       if (!updatedTask) {
         return new Response(JSON.stringify({ error: `Task not found or no changes ${id}` }), { status: 404, headers });

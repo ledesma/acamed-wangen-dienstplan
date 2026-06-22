@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getRosterEntries, createRosterEntry, updateRosterEntryShift, updateRosterEntryTasks, updateRosterEntryComment, updateRosterEntryShiftAndTasks, deleteRosterEntry } from '../lib/roster';
+import { getRosterEntries, createRosterEntry, updateRosterEntry, deleteRosterEntry } from '../lib/roster';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -9,8 +9,6 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
-  const url = new URL(req.url);
-
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
@@ -32,34 +30,28 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
-      const newEntry = { ...body, id: `entry-${Date.now()}` };
-      const result = await createRosterEntry(newEntry);
+      const snakeEntry = {
+        id: `entry-${Date.now()}`,
+        user_id: body.userId || body.user_id,
+        date: body.date,
+        shift_id: (body.shiftId || body.shift_id) || null,
+        active_task_ids: body.activeTaskIds || body.active_task_ids || [],
+        comment: body.comment
+      };
+      const result = await createRosterEntry(snakeEntry);
       return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      console.log('id:', id);
-      console.log('updates:', updates);
-      
-      let result: any = null;
-      
-      if (updates.shiftId !== undefined && updates.activeTaskIds !== undefined) {
-        result = await updateRosterEntryShiftAndTasks(id, updates.shiftId, updates.activeTaskIds);
-      } else {
-        if (updates.shiftId !== undefined) {
-          result = await updateRosterEntryShift(id, updates.shiftId);
-        }
-        if (updates.activeTaskIds !== undefined) {
-          const tasksResult = await updateRosterEntryTasks(id, updates.activeTaskIds);
-          result = tasksResult[0] || result;
-        }
-        if (updates.comment !== undefined) {
-          const commentResult = await updateRosterEntryComment(id, updates.comment);
-          result = commentResult[0] || result;
-        }
-      }
-      
+      const snakeUpdates: Record<string, any> = {};
+      if (updates.shift_id !== undefined) snakeUpdates.shift_id = updates.shift_id;
+      if (updates.shiftId !== undefined) snakeUpdates.shift_id = updates.shiftId;
+      if (updates.active_task_ids !== undefined) snakeUpdates.active_task_ids = updates.active_task_ids;
+      if (updates.activeTaskIds !== undefined) snakeUpdates.active_task_ids = updates.activeTaskIds;
+      if (updates.comment !== undefined) snakeUpdates.comment = updates.comment;
+      const result = await updateRosterEntry(id, snakeUpdates);
+
       if (!result) {
         return new Response(JSON.stringify({ error: `Roster entry not found or no changes ${id}` }), { status: 404, headers });
       }
@@ -67,6 +59,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'DELETE') {
+      const url = new URL(req.url);
       const id = url.searchParams.get('id');
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
@@ -77,13 +70,7 @@ export default async (req: Request, _context: Context) => {
 
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });
   } catch (error: any) {
-    console.error('roster-entries error:', error);
-    return new Response(JSON.stringify({
-      error: error.message,
-      type: typeof error,
-      code: error.code,
-      hint: error.hint
-    }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: error.message.includes('Forbidden') ? 403 : 500,
       headers
     });

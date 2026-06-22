@@ -63,6 +63,7 @@ export const updateTask = async (id: string, updates: {
   name?: string;
   icon?: string;
   is_active?: boolean;
+  isActive?: boolean;
 }) => {
   let updatedTask: any = null;
 
@@ -74,6 +75,9 @@ export const updateTask = async (id: string, updates: {
   }
   if (updates.is_active !== undefined) {
     updatedTask = await updateTaskActive(id, updates.is_active);
+  }
+  if (updates.isActive !== undefined) {
+    updatedTask = await updateTaskActive(id, updates.isActive);
   }
 
   return updatedTask;

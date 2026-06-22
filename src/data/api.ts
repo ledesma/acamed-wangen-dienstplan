@@ -54,16 +54,32 @@ export const api = {
   },
 
   async createShift(shift: any) {
+    const snakeShift = {
+      id: shift.id,
+      name: shift.name,
+      times: shift.times,
+      default_task_ids: shift.default_task_ids || [],
+      color: shift.color,
+      is_active: shift.is_active !== undefined ? shift.is_active : true
+    };
     return apiFetch('/shifts', {
       method: 'POST',
-      body: JSON.stringify(shift)
+      body: JSON.stringify(snakeShift)
     });
   },
 
   async updateShift(id: string, updates: any) {
+    const snakeUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) snakeUpdates.name = updates.name;
+    if (updates.times !== undefined) snakeUpdates.times = updates.times;
+    if (updates.default_task_ids !== undefined) snakeUpdates.default_task_ids = updates.default_task_ids;
+    if (updates.default_taskIds !== undefined) snakeUpdates.default_task_ids = updates.default_taskIds;
+    if (updates.color !== undefined) snakeUpdates.color = updates.color;
+    if (updates.is_active !== undefined) snakeUpdates.is_active = updates.is_active;
+    if (updates.isActive !== undefined) snakeUpdates.is_active = updates.isActive;
     return apiFetch('/shifts', {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates })
+      body: JSON.stringify({ id, ...snakeUpdates })
     });
   },
 
@@ -76,16 +92,27 @@ export const api = {
   },
 
   async createTask(task: any) {
+    const snakeTask = {
+      id: task.id,
+      name: task.name,
+      icon: task.icon,
+      is_active: task.is_active !== undefined ? task.is_active : true
+    };
     return apiFetch('/tasks', {
       method: 'POST',
-      body: JSON.stringify(task)
+      body: JSON.stringify(snakeTask)
     });
   },
 
   async updateTask(id: string, updates: any) {
+    const snakeUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) snakeUpdates.name = updates.name;
+    if (updates.icon !== undefined) snakeUpdates.icon = updates.icon;
+    if (updates.is_active !== undefined) snakeUpdates.is_active = updates.is_active;
+    if (updates.isActive !== undefined) snakeUpdates.is_active = updates.isActive;
     return apiFetch('/tasks', {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates })
+      body: JSON.stringify({ id, ...snakeUpdates })
     });
   },
 
@@ -98,16 +125,30 @@ export const api = {
   },
 
   async createRosterEntry(entry: any) {
+    const snakeEntry = {
+      id: entry.id,
+      user_id: entry.userId || entry.user_id,
+      date: entry.date,
+      shift_id: (entry.shiftId || entry.shift_id) || null,
+      active_task_ids: entry.activeTaskIds || entry.active_task_ids || [],
+      comment: entry.comment
+    };
     return apiFetch('/roster-entries', {
       method: 'POST',
-      body: JSON.stringify(entry)
+      body: JSON.stringify(snakeEntry)
     });
   },
 
   async updateRosterEntry(id: string, updates: any) {
+    const snakeUpdates: Record<string, any> = {};
+    if (updates.shift_id !== undefined) snakeUpdates.shift_id = updates.shift_id;
+    if (updates.shiftId !== undefined) snakeUpdates.shift_id = updates.shiftId;
+    if (updates.active_task_ids !== undefined) snakeUpdates.active_task_ids = updates.active_task_ids;
+    if (updates.activeTaskIds !== undefined) snakeUpdates.active_task_ids = updates.activeTaskIds;
+    if (updates.comment !== undefined) snakeUpdates.comment = updates.comment;
     return apiFetch('/roster-entries', {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates })
+      body: JSON.stringify({ id, ...snakeUpdates })
     });
   },
 

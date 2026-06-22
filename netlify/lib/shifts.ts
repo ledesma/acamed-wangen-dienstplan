@@ -81,8 +81,10 @@ export const updateShift = async (id: string, updates: {
   name?: string;
   times?: any[];
   default_task_ids?: string[];
+  defaultTaskIds?: string[];
   color?: string;
   is_active?: boolean;
+  isActive?: boolean;
 }) => {
   let updatedShift: any = null;
 
@@ -95,11 +97,17 @@ export const updateShift = async (id: string, updates: {
   if (updates.default_task_ids !== undefined) {
     updatedShift = await updateShiftDefaultTaskIds(id, updates.default_task_ids);
   }
+  if (updates.defaultTaskIds !== undefined) {
+    updatedShift = await updateShiftDefaultTaskIds(id, updates.defaultTaskIds);
+  }
   if (updates.color !== undefined) {
     updatedShift = await updateShiftColor(id, updates.color);
   }
   if (updates.is_active !== undefined) {
     updatedShift = await updateShiftActive(id, updates.is_active);
+  }
+  if (updates.isActive !== undefined) {
+    updatedShift = await updateShiftActive(id, updates.isActive);
   }
 
   return updatedShift;
