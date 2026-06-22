@@ -120,8 +120,12 @@ export const api = {
     return apiFetch(`/tasks?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  async getRosterEntries() {
-    return apiFetch('/roster-entries', { method: 'GET' });
+  async getRosterEntries(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return apiFetch(`/roster-entries${query}`, { method: 'GET' });
   },
 
   async createRosterEntry(entry: any) {
@@ -157,7 +161,7 @@ export const api = {
   },
 
   async getRosterEntry(userId: string, date: string) {
-    const entries = await apiFetch('/roster-entries', { method: 'GET' });
+    const entries = await apiFetch(`/roster-entries?from=${date}&to=${date}`, { method: 'GET' });
     return entries.find(
       (e: any) => e.user_id === userId && e.date === date
     );

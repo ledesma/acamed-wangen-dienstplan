@@ -25,6 +25,12 @@ const PersonalRoster: React.FC = () => {
     loadDayComments();
   }, []);
 
+  React.useEffect(() => {
+    const monthStart = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+    const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+    refresh(monthStart, monthEnd);
+  }, [currentDate]);
+
   const loadDayComments = async () => {
     try {
       const comments = await dayCommentApi.getComments();
@@ -77,7 +83,11 @@ const PersonalRoster: React.FC = () => {
     <div className="personal-roster">
       <div className="personal-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={refresh} title={t('refresh')}>
+          <button className="btn btn-secondary" onClick={() => {
+              const monthStart = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+              const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+              refresh(monthStart, monthEnd);
+            }} title={t('refresh')}>
             <RefreshCw size={18} />
           </button>
           <div className="view-toggle">

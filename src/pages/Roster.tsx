@@ -218,17 +218,21 @@ const Roster: React.FC = () => {
 
   useEffect(() => {
     refreshUsers();
-    loadData();
+    loadData(weekDates[0], weekDates[weekDates.length - 1]);
   }, []);
 
-  const loadData = async () => {
+  useEffect(() => {
+    loadData(weekDates[0], weekDates[weekDates.length - 1]);
+  }, [currentWeekStart]);
+
+  const loadData = async (weekStart: Date, weekEnd: Date) => {
     setLoading(true);
     setError(null);
     try {
       const [shiftsData, tasksData, entriesData, commentsData] = await Promise.all([
         api.getShifts(),
         api.getTasks(),
-        api.getRosterEntries(),
+        api.getRosterEntries(formatDate(weekStart), formatDate(weekEnd)),
         dayCommentApi.getComments()
       ]);
       setShifts(shiftsData);
@@ -384,7 +388,7 @@ const Roster: React.FC = () => {
       <div className="error-message" style={{ padding: 24, textAlign: 'center' }}>
         <h2>Failed to load data</h2>
         <p>{error}</p>
-        <button className="btn btn-secondary" onClick={loadData} style={{ marginTop: 16 }}>
+        <button className="btn btn-secondary" onClick={() => loadData(weekDates[0], weekDates[weekDates.length - 1])} style={{ marginTop: 16 }}>
           <RefreshCw size={18} /> Retry
         </button>
       </div>
@@ -395,7 +399,7 @@ const Roster: React.FC = () => {
     <>
       <div className="roster-container">
         <div className="roster-header">
-          <button className="btn btn-secondary" onClick={loadData} title={t('refresh')}>
+          <button className="btn btn-secondary" onClick={() => loadData(weekDates[0], weekDates[weekDates.length - 1])} title={t('refresh')}>
             <RefreshCw size={18} />
           </button>
 

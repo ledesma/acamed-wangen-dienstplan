@@ -2,10 +2,11 @@ import { getDatabase } from '@netlify/database';
 
 const db = getDatabase();
 
-export const getRosterEntries = async () => {
+export const getRosterEntries = async (from: string, to: string) => {
   const rows = await db.sql`
     SELECT id, user_id, date::text as date, shift_id, active_task_ids, comment
     FROM roster_entries
+    WHERE date >= ${from} AND date <= ${to}
     ORDER BY date, user_id
   `;
   return rows.map(row => ({

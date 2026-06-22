@@ -25,7 +25,10 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'GET') {
-      return new Response(JSON.stringify(await getRosterEntries()), { status: 200, headers });
+      const url = new URL(req.url);
+      const from = url.searchParams.get('from') || undefined;
+      const to = url.searchParams.get('to') || undefined;
+      return new Response(JSON.stringify(await getRosterEntries(from, to)), { status: 200, headers });
     }
 
     if (req.method === 'POST') {

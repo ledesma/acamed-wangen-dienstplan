@@ -9,7 +9,7 @@ interface RosterContextType {
   shifts: Shift[];
   tasks: Task[];
   exportICS: (user: { name: string; id: string }) => void;
-  refresh: () => Promise<void>;
+  refresh: (from?: string, to?: string) => Promise<void>;
 }
 
 const RosterContext = createContext<RosterContextType | undefined>(undefined);
@@ -19,9 +19,9 @@ export const RosterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const refresh = async () => {
+  const refresh = async (from?: string, to?: string) => {
     const [entriesData, shiftsData, tasksData] = await Promise.all([
-      api.getRosterEntries(),
+      api.getRosterEntries(from, to),
       api.getShifts(),
       api.getTasks()
     ]);
@@ -31,7 +31,13 @@ export const RosterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   useEffect(() => {
-    refresh();
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    refresh(
+      `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-${String(monthStart.getDate()).padStart(2, '0')}`,
+      `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`
+    );
   }, []);
 
   const exportICS = (user: { name: string; id: string }) => {
