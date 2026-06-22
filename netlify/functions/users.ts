@@ -1,8 +1,6 @@
 import type { Context } from '@netlify/functions';
-import { admin, getIdentityConfig } from '@netlify/identity';
-import { getUsers, getUserById, getUserByEmail, createUser, updateUserName, updateUserEmail, updateUserRoles, updateUserInviteSent, deleteUser } from '../lib/users';
+import { getFullUsers, inviteUser, getUserById, updateUser, deleteUser } from '../lib/users';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
-import axios from 'axios';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -11,9 +9,6 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
-  const endpoint = '/users';
-  const url = new URL(req.url);
-
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
@@ -30,17 +25,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'GET') {
-      let users = await getUsers();
-      try {
-        const identityUsers = await admin.listUsers();
-        const identityEmails = new Set(identityUsers.map((u: any) => u.email));
-        users = users.map((u: any) => ({
-          ...u,
-          invite_sent: !identityEmails.has(u.email)
-        }));
-      } catch (e) {
-        // If Identity check fails, use stored value
-      }
+      const users = await getFullUsers();
       return new Response(JSON.stringify(users), { status: 200, headers });
     }
 
@@ -52,117 +37,33 @@ export default async (req: Request, _context: Context) => {
         return new Response(JSON.stringify({ error: 'Name, email, and roles (array) are required' }), { status: 400, headers });
       }
 
-      const filteredRoles = roles.filter((r: string) => r === 'admin' || r === 'employee');
+      console.log("DEBUG: invite user")
+      const result = await inviteUser(name, email, roles);
+      console.log("DEBUG: invite user done")
 
-      const existingUser = await getUserByEmail(email);
-      if (existingUser) {
-        return new Response(JSON.stringify({ error: 'A user with this email already exists' }), { status: 409, headers });
-      }
-
-      let inviteSent = false;
-
-      try {
-        const config = getIdentityConfig();
-        if (!config) {
-          throw new Error('Identity not configured');
-        }
-
-        const response = await axios.post(`${config.url}/invite`, { email }, {
-          headers: { authorization: `Bearer ${config.token}` }
-        });
-
-        if (response.status >= 200 && response.status < 300) {
-          inviteSent = true;
-          console.log(`[invite-user] Invite sent to ${email}`);
-        }
-      } catch (err: any) {
-        if (err.response?.status >= 200 && err.response?.status < 300) {
-          inviteSent = true;
-          console.log(`[invite-user] Invite sent to ${email}`);
-        } else {
-          console.warn(`[invite-user] Failed to send invite: ${err.message}`);
-        }
-      }
-
-      const newUser = {
-        id: `emp-${Date.now()}`,
-        name,
-        email,
-        roles: filteredRoles.length > 0 ? filteredRoles : ['employee'],
-        createdAt: new Date().toISOString(),
-        inviteSent
-      };
-
-      const result = await createUser(newUser);
-      const createdUser = result[0];
-
-      return new Response(JSON.stringify({
-        success: true,
-        user: createdUser,
-        invite_sent: inviteSent
-      }), { status: 201, headers });
+      return new Response(JSON.stringify(result), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
-      const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      const was = await getUserById(id);
-      if (!was) {
-        return new Response(JSON.stringify({ error: `User not found ${id}` }), { status: 404, headers });
-      }
+      const body = JSON.parse(await req.text() || '{}');
+      const id = body.id;
+      const updates: Record<string, any> = {};
+      if (body.name !== undefined) updates.name = body.name;
+      if (body.email !== undefined) updates.email = body.email;
+      if (body.roles !== undefined) updates.roles = body.roles;
+      if (body.inviteSent !== undefined) updates.inviteSent = body.inviteSent;
 
-      if (updates.roles) {
-        updates.roles = updates.roles.filter((r: string) => r === 'admin' || r === 'employee');
-      }
-
-      let updatedUser: any = null;
-
-      if (updates.name !== undefined) {
-        updatedUser = await updateUserName(id, updates.name);
-      }
-      if (updates.email !== undefined) {
-        updatedUser = await updateUserEmail(id, updates.email);
-      }
-      if (updates.roles !== undefined) {
-        updatedUser = await updateUserRoles(id, updates.roles);
-      }
-      if (updates.inviteSent !== undefined) {
-        updatedUser = await updateUserInviteSent(id, updates.inviteSent);
-      }
+      const updatedUser = await updateUser(id, updates);
 
       if (!updatedUser) {
         return new Response(JSON.stringify({ error: `User not found or no changes ${id}` }), { status: 404, headers });
-      }
-
-      if ((updates.roles || updates.name) && updates.email) {
-        try {
-          const identityUsers = await admin.listUsers();
-          const identityUser = identityUsers.find((u: any) => u.email === updates.email);
-          if (identityUser) {
-            const currentUser = await admin.getUser(identityUser.id);
-            const existingAppMetadata = (currentUser as any).app_metadata || {};
-            const existingUserMetadata = (currentUser as any).user_metadata || {};
-            const updatesToApp: Record<string, any> = {};
-            const updatesToUser: Record<string, any> = {};
-            if (updates.roles) {
-              updatesToApp.roles = updates.roles;
-            }
-            if (updates.name) {
-              updatesToUser.full_name = updates.name;
-            }
-            await admin.updateUser(identityUser.id, {
-              app_metadata: { ...existingAppMetadata, ...updatesToApp },
-              user_metadata: { ...existingUserMetadata, ...updatesToUser }
-            });
-          }
-        } catch (err: any) {
-          console.warn(`[sync-role] Failed to sync roles to Identity for ${updates.email}: ${err.message}`);
-        }
       }
 
       return new Response(JSON.stringify(updatedUser), { status: 200, headers });
     }
 
     if (req.method === 'DELETE') {
+      const url = new URL(req.url);
       const id = url.searchParams.get('id');
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
