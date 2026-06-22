@@ -22,13 +22,13 @@ export const createShift = async (data: {
   id: string;
   name: string;
   times: any[];
-  defaultTaskIds: string[];
+  default_task_ids: string[];
   color: string;
-  isActive?: boolean;
+  is_active?: boolean;
 }) => {
   return await db.sql`
     INSERT INTO shifts (id, name, times, default_task_ids, color, is_active)
-    VALUES (${data.id}, ${data.name}, ${JSON.stringify(data.times)}, ${data.defaultTaskIds}, ${data.color}, ${data.isActive !== false})
+    VALUES (${data.id}, ${data.name}, ${JSON.stringify(data.times)}, ${data.default_task_ids}, ${data.color}, ${data.is_active !== false})
     RETURNING id, name, times, default_task_ids, color, is_active
   `;
 };
@@ -75,4 +75,32 @@ export const updateShiftActive = async (id: string, isActive: boolean) => {
 
 export const deleteShift = async (id: string) => {
   return await db.sql`DELETE FROM shifts WHERE id = ${id}`;
+};
+
+export const updateShift = async (id: string, updates: {
+  name?: string;
+  times?: any[];
+  default_task_ids?: string[];
+  color?: string;
+  is_active?: boolean;
+}) => {
+  let updatedShift: any = null;
+
+  if (updates.name !== undefined) {
+    updatedShift = await updateShiftName(id, updates.name);
+  }
+  if (updates.times !== undefined) {
+    updatedShift = await updateShiftTimes(id, updates.times);
+  }
+  if (updates.default_task_ids !== undefined) {
+    updatedShift = await updateShiftDefaultTaskIds(id, updates.default_task_ids);
+  }
+  if (updates.color !== undefined) {
+    updatedShift = await updateShiftColor(id, updates.color);
+  }
+  if (updates.is_active !== undefined) {
+    updatedShift = await updateShiftActive(id, updates.is_active);
+  }
+
+  return updatedShift;
 };

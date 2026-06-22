@@ -22,11 +22,11 @@ export const createTask = async (data: {
   id: string;
   name: string;
   icon: string;
-  isActive?: boolean;
+  is_active?: boolean;
 }) => {
   return await db.sql`
     INSERT INTO tasks (id, name, icon, is_active)
-    VALUES (${data.id}, ${data.name}, ${data.icon}, ${data.isActive !== false})
+    VALUES (${data.id}, ${data.name}, ${data.icon}, ${data.is_active !== false})
     RETURNING id, name, icon, is_active
   `;
 };
@@ -57,4 +57,24 @@ export const updateTaskActive = async (id: string, isActive: boolean) => {
 
 export const deleteTask = async (id: string) => {
   return await db.sql`DELETE FROM tasks WHERE id = ${id}`;
+};
+
+export const updateTask = async (id: string, updates: {
+  name?: string;
+  icon?: string;
+  is_active?: boolean;
+}) => {
+  let updatedTask: any = null;
+
+  if (updates.name !== undefined) {
+    updatedTask = await updateTaskName(id, updates.name);
+  }
+  if (updates.icon !== undefined) {
+    updatedTask = await updateTaskIcon(id, updates.icon);
+  }
+  if (updates.is_active !== undefined) {
+    updatedTask = await updateTaskActive(id, updates.is_active);
+  }
+
+  return updatedTask;
 };

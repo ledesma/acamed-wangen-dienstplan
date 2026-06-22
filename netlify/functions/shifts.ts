@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getShifts, createShift, updateShiftName, updateShiftTimes, updateShiftDefaultTaskIds, updateShiftColor, updateShiftActive, deleteShift } from '../lib/shifts';
+import { getShifts, createShift, updateShift, deleteShift } from '../lib/shifts';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -9,8 +9,6 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
-  const url = new URL(req.url);
-
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
@@ -39,23 +37,7 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      let updatedShift: any = null;
-
-      if (updates.name !== undefined) {
-        updatedShift = await updateShiftName(id, updates.name);
-      }
-      if (updates.times !== undefined) {
-        updatedShift = await updateShiftTimes(id, updates.times);
-      }
-      if (updates.default_task_ids !== undefined) {
-        updatedShift = await updateShiftDefaultTaskIds(id, updates.default_task_ids);
-      }
-      if (updates.color !== undefined) {
-        updatedShift = await updateShiftColor(id, updates.color);
-      }
-      if (updates.is_active !== undefined) {
-        updatedShift = await updateShiftActive(id, updates.is_active);
-      }
+      const updatedShift = await updateShift(id, updates);
 
       if (!updatedShift) {
         return new Response(JSON.stringify({ error: `Shift not found or no changes ${id}` }), { status: 404, headers });
@@ -64,6 +46,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'DELETE') {
+      const url = new URL(req.url);
       const id = url.searchParams.get('id');
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
