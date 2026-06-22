@@ -9,8 +9,9 @@ import { useTranslation } from 'react-i18next';
 import AdminSidebar from '../components/AdminSidebar';
 
 const COLORS = [
-  '#22c55e', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444',
-  '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+  '#84cc16', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444',
+  '#088b59', '#6e0808', '#f8469f', '#f97316', '#2b2ed8', 
+  '#fffb00', '#999999',
 ];
 
 const AdminShifts: React.FC = () => {
