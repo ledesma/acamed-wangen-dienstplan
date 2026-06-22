@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { updateUser } from '@netlify/identity';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { recoverPassword } from '@netlify/identity';
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const queryToken = searchParams.get('token');
+    if (queryToken) {
+      setToken(queryToken);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,17 +30,27 @@ const ResetPassword: React.FC = () => {
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('passwordMinLength'));
+      return;
+    }
+
+    if (!token) {
+      setError(t('recoveryLinkInvalid'));
       return;
     }
 
     setLoading(true);
 
     try {
-      await updateUser({ password });
+      await recoverPassword(token, password);
       navigate('/login');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('passwordResetFailed'));
+    } catch (err: any) {
+      const message = err?.message || '';
+      if (message.includes('expired') || message.includes('invalid')) {
+        setError(t('recoveryLinkExpired'));
+      } else {
+        setError(message || t('passwordResetFailed'));
+      }
     } finally {
       setLoading(false);
     }
