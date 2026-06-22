@@ -12,26 +12,38 @@ const AUTH_HASH_PATTERN =
 const initAuth = async () => {
   if (typeof window === 'undefined') return;
 
-  if (AUTH_HASH_PATTERN.test(window.location.hash)) {
-    try {
-      const hash = window.location.hash;
-      const recoveryMatch = hash.match(/recovery_token=([^&]+)/);
-      const inviteMatch = hash.match(/invite_token=([^&]+)/);
-      const recoveryToken = recoveryMatch?.[1];
-      const inviteToken = inviteMatch?.[1];
+  const hash = window.location.hash;
+  const recoveryMatch = hash.match(/recovery_token=([^&]+)/);
+  const inviteMatch = hash.match(/invite_token=([^&]+)/);
 
+  if (recoveryMatch) {
+    window.location.hash = `#/reset-password?token=${recoveryMatch[1]}`;
+    return;
+  }
+
+  if (inviteMatch) {
+    try {
       const result = await handleAuthCallback();
       if (result) {
-        if (result.type === 'recovery') {
-          window.location.hash = `#/reset-password?token=${recoveryToken || ''}`;
-        } else if (result.type === 'invite') {
-          window.location.hash = `#/join?token=${inviteToken || ''}`;
+        if (result.type === 'invite') {
+          window.location.hash = `#/join?token=${inviteMatch[1]}`;
         } else {
           window.location.hash = '#/';
         }
       } else {
         window.location.hash = '#/login';
       }
+    } catch (err) {
+      console.error('Auth callback failed:', err);
+      window.location.hash = '#/login';
+    }
+    return;
+  }
+
+  if (AUTH_HASH_PATTERN.test(hash)) {
+    try {
+      await handleAuthCallback();
+      window.location.hash = '#/';
     } catch (err) {
       console.error('Auth callback failed:', err);
       window.location.hash = '#/login';

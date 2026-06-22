@@ -14,15 +14,9 @@ const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const hashTokenMatch = hash.match(/recovery_token=([^&]+)/);
-    if (hashTokenMatch) {
-      setToken(hashTokenMatch[1]);
-    } else {
-      const queryToken = searchParams.get('token');
-      if (queryToken) {
-        setToken(queryToken);
-      }
+    const queryToken = searchParams.get('token');
+    if (queryToken) {
+      setToken(queryToken);
     }
   }, [searchParams]);
 
