@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getTasks, createTask, updateTaskName, updateTaskIcon, updateTaskActive, deleteTask } from '../lib/tasks';
+import { getTasks, createTask, updateTask, deleteTask } from '../lib/tasks';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -9,8 +9,6 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
-  const url = new URL(req.url);
-
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
@@ -32,24 +30,24 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
-      const newTask = { ...body, id: `task-${Date.now()}` };
-      const result = await createTask(newTask);
+      const snakeTask = {
+        id: `task-${Date.now()}`,
+        name: body.name,
+        icon: body.icon,
+        is_active: body.is_active !== undefined ? body.is_active : (body.isActive !== undefined ? body.isActive : true)
+      };
+      const result = await createTask(snakeTask);
       return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      let updatedTask: any = null;
-
-      if (updates.name !== undefined) {
-        updatedTask = await updateTaskName(id, updates.name);
-      }
-      if (updates.icon !== undefined) {
-        updatedTask = await updateTaskIcon(id, updates.icon);
-      }
-      if (updates.is_active !== undefined) {
-        updatedTask = await updateTaskActive(id, updates.is_active);
-      }
+      const snakeUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) snakeUpdates.name = updates.name;
+      if (updates.icon !== undefined) snakeUpdates.icon = updates.icon;
+      if (updates.is_active !== undefined) snakeUpdates.is_active = updates.is_active;
+      if (updates.isActive !== undefined) snakeUpdates.is_active = updates.isActive;
+      const updatedTask = await updateTask(id, snakeUpdates);
 
       if (!updatedTask) {
         return new Response(JSON.stringify({ error: `Task not found or no changes ${id}` }), { status: 404, headers });
@@ -58,6 +56,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'DELETE') {
+      const url = new URL(req.url);
       const id = url.searchParams.get('id');
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });

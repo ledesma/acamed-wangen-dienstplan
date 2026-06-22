@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getShifts, createShift, updateShiftName, updateShiftTimes, updateShiftDefaultTaskIds, updateShiftColor, updateShiftActive, deleteShift } from '../lib/shifts';
+import { getShifts, createShift, updateShift, deleteShift } from '../lib/shifts';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -9,8 +9,6 @@ const headers: Record<string, string> = {
 };
 
 export default async (req: Request, _context: Context) => {
-  const url = new URL(req.url);
-
   if (req.method === 'OPTIONS') {
     return new Response('', { status: 200, headers });
   }
@@ -32,30 +30,29 @@ export default async (req: Request, _context: Context) => {
 
     if (req.method === 'POST') {
       const body = JSON.parse(await req.text() || '{}');
-      const newShift = { ...body, id: `shift-${Date.now()}` };
-      const result = await createShift(newShift);
+      const snakeShift = {
+        id: `shift-${Date.now()}`,
+        name: body.name,
+        times: body.times,
+        default_task_ids: body.default_task_ids || body.defaultTaskIds || [],
+        color: body.color,
+        is_active: body.is_active !== undefined ? body.is_active : (body.isActive !== undefined ? body.isActive : true)
+      };
+      const result = await createShift(snakeShift);
       return new Response(JSON.stringify(result[0]), { status: 201, headers });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = JSON.parse(await req.text() || '{}');
-      let updatedShift: any = null;
-
-      if (updates.name !== undefined) {
-        updatedShift = await updateShiftName(id, updates.name);
-      }
-      if (updates.times !== undefined) {
-        updatedShift = await updateShiftTimes(id, updates.times);
-      }
-      if (updates.default_task_ids !== undefined) {
-        updatedShift = await updateShiftDefaultTaskIds(id, updates.default_task_ids);
-      }
-      if (updates.color !== undefined) {
-        updatedShift = await updateShiftColor(id, updates.color);
-      }
-      if (updates.is_active !== undefined) {
-        updatedShift = await updateShiftActive(id, updates.is_active);
-      }
+      const snakeUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) snakeUpdates.name = updates.name;
+      if (updates.times !== undefined) snakeUpdates.times = updates.times;
+      if (updates.default_task_ids !== undefined) snakeUpdates.default_task_ids = updates.default_task_ids;
+      if (updates.defaultTaskIds !== undefined) snakeUpdates.default_task_ids = updates.defaultTaskIds;
+      if (updates.color !== undefined) snakeUpdates.color = updates.color;
+      if (updates.is_active !== undefined) snakeUpdates.is_active = updates.is_active;
+      if (updates.isActive !== undefined) snakeUpdates.is_active = updates.isActive;
+      const updatedShift = await updateShift(id, snakeUpdates);
 
       if (!updatedShift) {
         return new Response(JSON.stringify({ error: `Shift not found or no changes ${id}` }), { status: 404, headers });
@@ -64,6 +61,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'DELETE') {
+      const url = new URL(req.url);
       const id = url.searchParams.get('id');
       if (!id) {
         return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });

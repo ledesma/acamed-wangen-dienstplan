@@ -14,7 +14,10 @@ export const TASK_ICON_NAMES: Record<string, string> = {
   Phone: 'Call',
   Eye: 'visibility',
   Bone: 'accessibility_new',
-  Email: 'mail'
+  Email: 'mail',
+  Run: 'directions_run',
+  Order: 'shopping_cart',
+  Task: 'task'
 };
 
 export const TASK_ICON_OPTIONS = Object.keys(TASK_ICON_NAMES);
