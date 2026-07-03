@@ -1,5 +1,5 @@
 :root {
-  --color-bg: #f8fafc;
+  --color-bg: #f4f8fc;
   --color-surface: #ffffff;
   --color-surface-elevated: #e9eef3;
   --color-primary: #5d88bf;
@@ -11,6 +11,7 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
+  --color-weekend: #f6fbff;
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -555,6 +556,9 @@ body {
 }
 
 
+.day-cell.weekend {
+  background: var(--color-weekend);
+}
 
 .day-cell:hover {
   background: var(--color-surface-elevated);
@@ -567,8 +571,6 @@ body {
 .day-cell.drag-over {
   background: rgba(14, 165, 233, 0.15) !important;
 }
-
-
 
 .day-cell-content {
   display: flex;
@@ -1139,8 +1141,7 @@ body {
 }
 
 .month-cell.weekend {
-  background: var(--color-surface-elevated);
-  opacity: 0.3;
+  background: var(--color-weekend);
 }
 
 .month-cell.today {
