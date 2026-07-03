@@ -512,6 +512,10 @@ body {
   color: white;
 }
 
+.week-header-cell.today .footnote-marker {
+  color: var(--color-primary-hover);
+}
+
 .week-header-date {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
@@ -619,6 +623,24 @@ body {
   line-height: 1;
 }
 
+.cell-footnote-marker {
+  font-size: 0.6rem;
+  color: var(--color-primary);
+  line-height: 1;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.cell-footnote-markers {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 1px;
+}
+
 .roster-footnotes {
   padding: 8px 12px;
   background: var(--color-surface);
@@ -652,6 +674,12 @@ body {
 
 .footnote-text {
   color: var(--color-text-secondary);
+}
+
+.footnote-user {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
 }
 
 .legend-item-disabled {

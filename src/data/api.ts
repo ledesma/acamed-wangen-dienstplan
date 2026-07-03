@@ -173,17 +173,17 @@ export const dayCommentApi = {
     return apiFetch('/day-comments', { method: 'GET' });
   },
 
-  async setComment(date: string, comment: string) {
+  async setComment(date: string, comment: string, userId?: string) {
     return apiFetch('/day-comments', {
       method: 'POST',
-      body: JSON.stringify({ date, comment })
+      body: JSON.stringify({ date, comment, user_id: userId })
     });
   },
 
-  async deleteComment(date: string) {
+  async deleteComment(date: string, userId?: string) {
     return apiFetch('/day-comments', {
       method: 'POST',
-      body: JSON.stringify({ date, comment: '' })
+      body: JSON.stringify({ date, comment: '', user_id: userId })
     });
   }
 };

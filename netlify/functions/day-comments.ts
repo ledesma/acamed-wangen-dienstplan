@@ -30,14 +30,14 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      const { date, comment } = JSON.parse(await req.text() || '{}');
+      const { date, comment, user_id } = JSON.parse(await req.text() || '{}');
       if (!date) {
         return new Response(JSON.stringify({ error: 'Date required' }), { status: 400, headers });
       }
       if (comment && comment.trim() !== '') {
-        await upsertDayComment(date, comment);
+        await upsertDayComment(date, comment, user_id);
       } else {
-        await deleteDayComment(date);
+        await deleteDayComment(date, user_id);
       }
       const comments = await getDayComments();
       return new Response(JSON.stringify(comments), { status: 200, headers });

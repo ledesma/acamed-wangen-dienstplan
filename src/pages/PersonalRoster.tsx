@@ -10,6 +10,11 @@ import { getTaskIcon } from '../utils/iconUtils';
 import { dayCommentApi } from '../data/api';
 import Legend from '../components/Legend';
 
+interface DayCommentData {
+  global: string;
+  employees: Record<string, string>;
+}
+
 type ViewMode = 'month' | 'list';
 
 const PersonalRoster: React.FC = () => {
@@ -18,7 +23,7 @@ const PersonalRoster: React.FC = () => {
   const { rosterEntries, shifts, tasks, refresh } = useRoster();
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dayComments, setDayComments] = useState<Record<string, string>>({});
+  const [dayComments, setDayComments] = useState<Record<string, DayCommentData>>({});
 
   React.useEffect(() => {
     refreshUsers();
@@ -58,14 +63,40 @@ const PersonalRoster: React.FC = () => {
   const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
   const sortedEntries = [...userEntries].filter(e => e.date >= monthStart && e.date <= monthEnd).sort((a, b) => a.date.localeCompare(b.date));
 
-  const footnoteMap: Record<string, number> = {};
-  let footnoteCounter = 0;
-  for (const cell of monthDates) {
-    if (!cell.date) continue;
-    const dateStr = formatDate(cell.date);
-    if (dayComments[dateStr]) {
-      footnoteCounter++;
-      footnoteMap[dateStr] = footnoteCounter;
+  const buildFootnotes = () => {
+    const footnotes: Array<{ date: string; index: number; comment: string; userId?: string }> = [];
+    let counter = 0;
+    for (const cell of monthDates) {
+      if (!cell.date) continue;
+      const dateStr = formatDate(cell.date);
+      const commentData = dayComments[dateStr];
+      if (!commentData) continue;
+      if (commentData.global) {
+        counter++;
+        footnotes.push({ date: dateStr, index: counter, comment: commentData.global });
+      }
+      if (commentData.employees) {
+        const sortedUserIds = Object.keys(commentData.employees).sort();
+        for (const userId of sortedUserIds) {
+          const empComment = commentData.employees[userId];
+          if (empComment) {
+            counter++;
+            footnotes.push({ date: dateStr, index: counter, comment: empComment, userId });
+          }
+        }
+      }
+    }
+    return footnotes;
+  };
+
+  const footnotes = buildFootnotes();
+  const cellFootnoteMap: Record<string, number[]> = {};
+  for (const fn of footnotes) {
+    if (!fn.userId || fn.userId === user?.id) {
+      if (!cellFootnoteMap[fn.date]) {
+        cellFootnoteMap[fn.date] = [];
+      }
+      cellFootnoteMap[fn.date].push(fn.index);
     }
   }
 
@@ -140,7 +171,7 @@ const PersonalRoster: React.FC = () => {
             const entry = getEntryForDate(dateStr);
             const shift = getShiftForEntry(entry);
             const entryTasks = entry ? getTasksForEntry(entry) : [];
-            const hasComment = !!dayComments[dateStr];
+            const footnoteIndices = cellFootnoteMap[dateStr] || [];
 
             return (
               <div
@@ -150,8 +181,12 @@ const PersonalRoster: React.FC = () => {
               >
                 <div className="month-date">
                   {cell.date.getDate()}
-                  {footnoteMap[dateStr] !== undefined && (
-                    <sup className="month-footnote-marker">{footnoteMap[dateStr]})</sup>
+                  {footnoteIndices.length > 0 && (
+                    <div className="month-footnote-markers">
+                      {footnoteIndices.map(idx => (
+                        <sup key={idx} className="month-footnote-marker">{idx})</sup>
+                      ))}
+                    </div>
                   )}
 
                 </div>
@@ -187,6 +222,7 @@ const PersonalRoster: React.FC = () => {
             sortedEntries.map(entry => {
               const shift = getShiftForEntry(entry);
               const entryTasks = getTasksForEntry(entry);
+              const footnoteIndices = cellFootnoteMap[entry.date] || [];
               
               return (
                 <div
@@ -219,8 +255,12 @@ const PersonalRoster: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  {footnoteMap[entry.date] !== undefined && (
-                    <span className="list-footnote-marker">{footnoteMap[entry.date]})</span>
+                  {footnoteIndices.length > 0 && (
+                    <div className="list-footnote-markers">
+                      {footnoteIndices.map(idx => (
+                        <span key={idx} className="list-footnote-marker">{idx})</span>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
@@ -229,15 +269,18 @@ const PersonalRoster: React.FC = () => {
         </div>
       )}
 
-      {Object.keys(footnoteMap).length > 0 && (
+      {footnotes.length > 0 && (
         <div className="roster-footnotes">
-          {Object.entries(footnoteMap).map(([dateStr, index]) => (
-            <div key={dateStr} className="footnote-item">
-              <span className="footnote-number">{index})</span>
-              <span className="footnote-date">{new Date(dateStr + 'T00:00:00').toLocaleDateString('de-CH', { weekday: 'short', day: 'numeric', month: 'long' })}:</span>
-              <span className="footnote-text">{dayComments[dateStr]}</span>
-            </div>
-          ))}
+          {footnotes.map(fn => (
+              <div key={`${fn.date}-${fn.userId || 'global'}`} className="footnote-item">
+                <span className="footnote-number">{fn.index})</span>
+                <span className="footnote-date">{new Date(fn.date + 'T00:00:00').toLocaleDateString('de-CH', { weekday: 'short', day: 'numeric', month: 'long' })}:</span>
+                {fn.userId || (
+                  <span className="footnote-user">{t('footnoteGlobalPrefix')}</span>
+                )}
+                <span className="footnote-text"> {fn.comment}</span>
+              </div>
+            ))}
         </div>
       )}
 
