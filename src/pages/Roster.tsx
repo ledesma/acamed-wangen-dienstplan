@@ -82,7 +82,7 @@ const DroppableCell: React.FC<{
     <>
       <div
         className={`day-cell ${isOver ? 'drag-over' : ''} ${isWeekend ? 'weekend' : ''} ${shift ? 'has-shift' : ''}`}
-        style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
+        style={shift ? { backgroundColor: shift.color + '70', border: `2px solid ${shift.color}` } : {}}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

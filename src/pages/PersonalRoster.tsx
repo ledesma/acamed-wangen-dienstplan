@@ -146,7 +146,7 @@ const PersonalRoster: React.FC = () => {
               <div
                 key={index}
                 className={`month-cell ${isToday(cell.date) ? 'today' : ''} ${cell.date.getDay() == 0 || cell.date.getDay() == 6 ? 'weekend' : ''} ${shift ? 'has-shift' : ''}`}
-                style={shift ? { backgroundColor: shift.color + '30', border: `2px solid ${shift.color}` } : {}}
+                style={shift ? { backgroundColor: shift.color + '70', border: `2px solid ${shift.color}` } : {}}
               >
                 <div className="month-date">
                   {cell.date.getDate()}
