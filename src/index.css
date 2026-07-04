@@ -1685,3 +1685,74 @@ body {
     padding: 4px;
   }
 }
+
+/* User Order List */
+.user-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  transition: all 0.15s;
+}
+
+.user-order-row:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.user-order-row.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.user-order-row.drag-over {
+  border-top: 2px solid var(--color-primary);
+}
+
+.user-order-drag-handle {
+  color: var(--color-text-secondary);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.user-order-number {
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.user-order-input {
+  width: 100%;
+  height: 28px;
+  text-align: center;
+  padding: 0;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.user-order-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.user-order-name {
+  flex: 1;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

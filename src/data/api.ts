@@ -49,6 +49,20 @@ export const api = {
     return apiFetch(`/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
+  async reorderUsers(userIds: string[]) {
+    return apiFetch('/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ reorder: userIds })
+    });
+  },
+
+  async updateDisplayOrder(id: string, displayOrder: number) {
+    return apiFetch('/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ id, displayOrder })
+    });
+  },
+
   async getShifts() {
     return apiFetch('/shifts', { method: 'GET' });
   },

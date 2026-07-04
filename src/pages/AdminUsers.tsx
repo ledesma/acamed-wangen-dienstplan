@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import AdminSidebar from '../components/AdminSidebar';
+import UserOrderList from '../components/UserOrderList';
 
 const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ const AdminUsers: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [showOrderView, setShowOrderView] = useState(false);
   const [inviteStatus, setInviteStatus] = useState<{success: boolean; message: string} | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -121,61 +123,79 @@ const AdminUsers: React.FC = () => {
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
           <h1 className="page-title">{t('users')}</h1>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className={`btn ${!showOrderView ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setShowOrderView(false)}
+            >
+              {t('users')}
+            </button>
+            <button
+              className={`btn ${showOrderView ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setShowOrderView(true)}
+            >
+              {t('orderUsers')}
+            </button>
+          </div>
           <button className="btn btn-primary" onClick={openNewModal}>
             <Plus size={18} />
             {t('inviteUser')}
           </button>
         </div>
 
-        <div className="grid-3">
-          {users.map(user => (
-            <div key={user.id} className="card">
-              <div className="card-header">
-                <div className="card-title">
-                  <span style={{ fontSize: '1.5rem' }}>👤</span>
-                  {user.name}
-                </div>
-                <div className="table-actions">
-                  <button className="btn-icon" onClick={() => handleEdit(user)}>
-                    <Edit2 size={16} />
-                  </button>
-                  {currentUser?.email !== user.email && (
-                    <button className="btn-icon" onClick={() => handleDelete(user.id)}>
-                      <Trash2 size={16} />
+        {showOrderView ? (
+          <UserOrderList users={users} onChange={setUsers} />
+        ) : (
+          <div className="grid-3">
+            {users.map(user => (
+              <div key={user.id} className="card">
+                <div className="card-header">
+                  <div className="card-title">
+                    <span style={{ fontSize: '1.5rem' }}>👤</span>
+                    {user.name}
+                  </div>
+                  <div className="table-actions">
+                    <button className="btn-icon" onClick={() => handleEdit(user)}>
+                      <Edit2 size={16} />
                     </button>
+                    {currentUser?.email !== user.email && (
+                      <button className="btn-icon" onClick={() => handleDelete(user.id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="card-description" style={{ marginBottom: 8 }}>
+                  {user.email}
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {(user.roles || []).map(r => (
+                    <span key={r} style={{
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontSize: '0.75rem',
+                      background: 'var(--color-primary)',
+                      color: 'white'
+                    }}>
+                      {t(r)}
+                    </span>
+                  ))}
+                  {user.invite_sent && (
+                    <span style={{
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontSize: '0.75rem',
+                      background: '#f59e0b',
+                      color: 'white'
+                    }}>
+                      {t('onboardingIncomplete')}
+                    </span>
                   )}
                 </div>
               </div>
-              <div className="card-description" style={{ marginBottom: 8 }}>
-                {user.email}
-              </div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                {(user.roles || []).map(r => (
-                  <span key={r} style={{
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    fontSize: '0.75rem',
-                    background: 'var(--color-primary)',
-                    color: 'white'
-                  }}>
-                    {t(r)}
-                  </span>
-                ))}
-                {user.invite_sent && (
-                  <span style={{
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    fontSize: '0.75rem',
-                    background: '#f59e0b',
-                    color: 'white'
-                  }}>
-                    {t('onboardingIncomplete')}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {showModal && (
           <Modal

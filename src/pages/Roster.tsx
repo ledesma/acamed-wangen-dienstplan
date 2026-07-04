@@ -269,7 +269,16 @@ const Roster: React.FC = () => {
         footnotes.push({ date: dateStr, index: counter, comment: commentData.global });
       }
       if (commentData.employees) {
-        const sortedUserIds = Object.keys(commentData.employees).sort();
+        const sortedUserIds = Object.keys(commentData.employees).sort((a, b) => {
+          const userA = users.find(u => u.id === a);
+          const userB = users.find(u => u.id === b);
+          const orderA = userA?.display_order ?? Infinity;
+          const orderB = userB?.display_order ?? Infinity;
+          if (orderA !== orderB) return orderA - orderB;
+          const nameA = userA?.name ?? '';
+          const nameB = userB?.name ?? '';
+          return nameA.localeCompare(nameB);
+        });
         for (const userId of sortedUserIds) {
           const empComment = commentData.employees[userId];
           if (empComment) {
