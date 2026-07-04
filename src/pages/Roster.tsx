@@ -131,13 +131,13 @@ const DroppableCell: React.FC<{
               </div>
             )}
             {footnoteIndices.map(idx => (
-              <sup key={idx} className="cell-footnote-marker">{idx})</sup>
+              <sup key={idx} className="footnote-marker">{idx})</sup>
             ))}
           </div>
         )}
         {!shift && footnoteIndices.length > 0 && (
-          <div className="cell-footnote-markers">{footnoteIndices.map(idx => (
-              <sup key={idx} className="cell-footnote-marker">{idx})</sup>
+          <div className="footnote-marker">{footnoteIndices.map(idx => (
+              <span key={idx}>{idx})</span>
             ))}</div>
         )}
       </div>
