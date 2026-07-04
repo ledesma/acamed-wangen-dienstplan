@@ -1602,11 +1602,14 @@ body {
   }
 
   .week-header-cell {
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
-    height: auto;
     min-height: 70px;
     padding: 8px 2px;
+    text-align: left;
+  }
+
+  .week-header-cell .title {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
     text-align: left;
   }
 
