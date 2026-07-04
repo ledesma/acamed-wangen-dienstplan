@@ -43,17 +43,38 @@ export const getDayComment = async (date: string, userId?: string) => {
 
 export const upsertDayComment = async (date: string, comment: string, userId?: string) => {
   const id = userId ? `${date}-${userId}-comment` : `${date}-comment`;
-  return await db.sql`
-    INSERT INTO day_comments (id, date, comment, user_id)
-    VALUES (${id}, ${date}::date, ${comment}, ${userId || null})
-    ON CONFLICT (date, user_id) DO UPDATE SET comment = EXCLUDED.comment
-    RETURNING id, date, comment, user_id
-  `;
+
+  if (userId) {
+    return await db.sql.unsafe(
+      'INSERT INTO day_comments (id, date, comment, user_id) VALUES ($1, $2, $3, $4) ON CONFLICT (date, user_id) DO UPDATE SET comment = EXCLUDED.comment RETURNING id, date, comment, user_id',
+      [id, date, comment, userId]
+    );
+  }
+
+  const updateResult = await db.sql.unsafe(
+    'UPDATE day_comments SET comment = $1 WHERE date = $2 AND user_id IS NULL RETURNING id, date, comment, user_id',
+    [comment, date]
+  );
+
+  if (updateResult.length > 0) {
+    return updateResult;
+  }
+
+  return await db.sql.unsafe(
+    'INSERT INTO day_comments (id, date, comment, user_id) VALUES ($1, $2, $3, NULL) RETURNING id, date, comment, user_id',
+    [id, date, comment]
+  );
 };
 
 export const deleteDayComment = async (date: string, userId?: string) => {
   if (userId) {
-    return await db.sql`DELETE FROM day_comments WHERE date = ${date}::date AND user_id = ${userId}`;
+    return await db.sql.unsafe(
+      'DELETE FROM day_comments WHERE date = $1 AND user_id = $2',
+      [date, userId]
+    );
   }
-  return await db.sql`DELETE FROM day_comments WHERE date = ${date}::date AND user_id IS NULL`;
+  return await db.sql.unsafe(
+    'DELETE FROM day_comments WHERE date = $1 AND user_id IS NULL',
+    [date]
+  );
 };
