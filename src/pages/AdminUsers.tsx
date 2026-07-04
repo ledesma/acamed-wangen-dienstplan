@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import AdminSidebar from '../components/AdminSidebar';
+import UserOrderList from '../components/UserOrderList';
 
 const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ const AdminUsers: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   const [inviteStatus, setInviteStatus] = useState<{success: boolean; message: string} | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -92,6 +94,11 @@ const AdminUsers: React.FC = () => {
     setShowModal(true);
   };
 
+  const openOrderModal = () => {
+    setUsers([...users]);
+    setShowOrderModal(true);
+  };
+
   if (loading) {
     return (
       <div className="loading">
@@ -121,10 +128,15 @@ const AdminUsers: React.FC = () => {
       <div className="admin-content">
         <div className="card-header" style={{ marginBottom: 24 }}>
           <h1 className="page-title">{t('users')}</h1>
-          <button className="btn btn-primary" onClick={openNewModal}>
-            <Plus size={18} />
-            {t('inviteUser')}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={openOrderModal}>
+              {t('orderUsers')}
+            </button>
+            <button className="btn btn-primary" onClick={openNewModal}>
+              <Plus size={18} />
+              {t('inviteUser')}
+            </button>
+          </div>
         </div>
 
         <div className="grid-3">
@@ -298,6 +310,15 @@ const AdminUsers: React.FC = () => {
                 </button>
               </div>
             </form>
+          </Modal>
+        )}
+
+        {showOrderModal && (
+          <Modal
+            title={t('orderUsers')}
+            onClose={() => setShowOrderModal(false)}
+          >
+            <UserOrderList users={users} onChange={setUsers} />
           </Modal>
         )}
       </div>

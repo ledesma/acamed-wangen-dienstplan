@@ -5,6 +5,7 @@ export interface UserRecord {
   roles: ('admin' | 'employee')[];
   created_at: string;
   invite_sent?: boolean;
+  display_order: number;
 }
 
 export interface ShiftTime {

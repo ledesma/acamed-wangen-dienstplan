@@ -1,5 +1,5 @@
 import type { Context } from '@netlify/functions';
-import { getFullUsers, inviteUser, getUserById, updateUser, deleteUser } from '../lib/users';
+import { getFullUsers, inviteUser, getUserById, updateUser, deleteUser, reorderUsers } from '../lib/users';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
 
 const headers: Record<string, string> = {
@@ -52,6 +52,7 @@ export default async (req: Request, _context: Context) => {
       if (body.email !== undefined) updates.email = body.email;
       if (body.roles !== undefined) updates.roles = body.roles;
       if (body.inviteSent !== undefined) updates.inviteSent = body.inviteSent;
+      if (body.displayOrder !== undefined) updates.displayOrder = body.displayOrder;
 
       const updatedUser = await updateUser(id, updates);
 
@@ -60,6 +61,25 @@ export default async (req: Request, _context: Context) => {
       }
 
       return new Response(JSON.stringify(updatedUser), { status: 200, headers });
+    }
+
+    if (req.method === 'PATCH') {
+      const body = JSON.parse(await req.text() || '{}');
+
+      if (body.reorder && Array.isArray(body.reorder)) {
+        await reorderUsers(body.reorder);
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+      }
+
+      if (body.id !== undefined && body.displayOrder !== undefined) {
+        const updatedUser = await updateUser(body.id, { displayOrder: body.displayOrder });
+        if (!updatedUser) {
+          return new Response(JSON.stringify({ error: `User not found: ${body.id}` }), { status: 404, headers });
+        }
+        return new Response(JSON.stringify(updatedUser), { status: 200, headers });
+      }
+
+      return new Response(JSON.stringify({ error: 'PATCH requires either { reorder: [...] } or { id, displayOrder }' }), { status: 400, headers });
     }
 
     if (req.method === 'DELETE') {

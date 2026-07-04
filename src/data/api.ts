@@ -49,6 +49,20 @@ export const api = {
     return apiFetch(`/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
+  async reorderUsers(userIds: string[]) {
+    return apiFetch('/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ reorder: userIds })
+    });
+  },
+
+  async updateDisplayOrder(id: string, displayOrder: number) {
+    return apiFetch('/users', {
+      method: 'PATCH',
+      body: JSON.stringify({ id, displayOrder })
+    });
+  },
+
   async getShifts() {
     return apiFetch('/shifts', { method: 'GET' });
   },
@@ -120,8 +134,12 @@ export const api = {
     return apiFetch(`/tasks?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
-  async getRosterEntries() {
-    return apiFetch('/roster-entries', { method: 'GET' });
+  async getRosterEntries(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return apiFetch(`/roster-entries${query}`, { method: 'GET' });
   },
 
   async createRosterEntry(entry: any) {
@@ -157,7 +175,7 @@ export const api = {
   },
 
   async getRosterEntry(userId: string, date: string) {
-    const entries = await apiFetch('/roster-entries', { method: 'GET' });
+    const entries = await apiFetch(`/roster-entries?from=${date}&to=${date}`, { method: 'GET' });
     return entries.find(
       (e: any) => e.user_id === userId && e.date === date
     );
@@ -169,17 +187,17 @@ export const dayCommentApi = {
     return apiFetch('/day-comments', { method: 'GET' });
   },
 
-  async setComment(date: string, comment: string) {
+  async setComment(date: string, comment: string, userId?: string) {
     return apiFetch('/day-comments', {
       method: 'POST',
-      body: JSON.stringify({ date, comment })
+      body: JSON.stringify({ date, comment, user_id: userId })
     });
   },
 
-  async deleteComment(date: string) {
+  async deleteComment(date: string, userId?: string) {
     return apiFetch('/day-comments', {
       method: 'POST',
-      body: JSON.stringify({ date, comment: '' })
+      body: JSON.stringify({ date, comment: '', user_id: userId })
     });
   }
 };

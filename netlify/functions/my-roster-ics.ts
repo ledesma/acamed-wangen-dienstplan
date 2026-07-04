@@ -32,7 +32,9 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
-    const rosterEntries = await getRosterEntries();
+    const from = url.searchParams.get('from') || undefined;
+    const to = url.searchParams.get('to') || undefined;
+    const rosterEntries = await getRosterEntries(from, to);
     const shifts = await getShifts();
     const tasks = await getTasks();
 

@@ -6,9 +6,9 @@ const db = getDatabase();
 
 export const getUsers = async () => {
   return await db.sql`
-    SELECT id, name, email, roles, created_at, invite_sent
+    SELECT id, name, email, roles, created_at, invite_sent, display_order
     FROM users
-    ORDER BY name
+    ORDER BY display_order ASC, name ASC
   `;
 };
 
@@ -25,6 +25,27 @@ export const getFullUsers = async () => {
     // If Identity check fails, use stored value
   }
   return users;
+};
+
+export const reorderUsers = async (orderedUserIds: string[]) => {
+  await db.sql`BEGIN`;
+  try {
+    for (let i = 0; i < orderedUserIds.length; i++) {
+      await db.sql`UPDATE users SET display_order = ${i} WHERE id = ${orderedUserIds[i]}`;
+    }
+    await db.sql`COMMIT`;
+  } catch (e) {
+    await db.sql`ROLLBACK`;
+    throw e;
+  }
+};
+
+export const updateDisplayOrder = async (id: string, order: number) => {
+  const result = await db.sql`
+    UPDATE users SET display_order = ${order} WHERE id = ${id}
+    RETURNING id, name, email, roles, created_at, invite_sent, display_order
+  `;
+  return result[0] || null;
 };
 
 export const getUserById = async (id: string) => {
@@ -49,11 +70,12 @@ export const createUser = async (data: {
   email: string;
   roles: string[];
   inviteSent?: boolean;
+  displayOrder?: number;
 }) => {
   return await db.sql`
-    INSERT INTO users (id, name, email, roles, invite_sent)
-    VALUES (${data.id}, ${data.name}, ${data.email}, ${data.roles}, ${data.inviteSent || false})
-    RETURNING id, name, email, roles, created_at, invite_sent
+    INSERT INTO users (id, name, email, roles, invite_sent, display_order)
+    VALUES (${data.id}, ${data.name}, ${data.email}, ${data.roles}, ${data.inviteSent || false}, ${data.displayOrder || 0})
+    RETURNING id, name, email, roles, created_at, invite_sent, display_order
   `;
 };
 
@@ -82,13 +104,17 @@ export const inviteUser = async (name: string, email: string, roles: string[]) =
     console.warn(`[invite-user] Failed to send invite: ${err.message}`);
   }
 
+  const maxOrderResult = await db.sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
+  const nextOrder = (maxOrderResult[0] as any).max_order + 1;
+
   const newUser = {
     id: `emp-${Date.now()}`,
     name,
     email,
     roles: filteredRoles.length > 0 ? filteredRoles : ['employee'],
     createdAt: new Date().toISOString(),
-    inviteSent
+    inviteSent,
+    displayOrder: nextOrder
   };
 
   const result = await createUser(newUser);
@@ -160,6 +186,7 @@ export const updateUser = async (id: string, updates: {
   email?: string;
   roles?: string[];
   inviteSent?: boolean;
+  displayOrder?: number;
 }) => {
   const was = await getUserById(id);
   if (!was) return null;
@@ -182,6 +209,9 @@ export const updateUser = async (id: string, updates: {
   if (updates.inviteSent !== undefined) {
     updatedUser = await updateUserInviteSent(id, updates.inviteSent);
   }
+  if (updates.displayOrder !== undefined) {
+    updatedUser = await updateDisplayOrder(id, updates.displayOrder);
+  }
 
   if (!updatedUser) return null;
 
@@ -202,12 +232,16 @@ export const syncIdentityUser = async (identityUser: any) => {
   const existingUser = await getUserByEmail(email);
 
   if (!existingUser) {
+    const maxOrderResult = await db.sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
+    const nextOrder = (maxOrderResult[0] as any).max_order + 1;
+
     const newUser = {
       id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       name: identityUser.name || email.split('@')[0],
       email,
       roles: ['employee'],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      displayOrder: nextOrder
     };
     await createUser(newUser);
     return { synced: true };
