@@ -56,6 +56,17 @@ export const getMonthName = (date: Date): string => {
   return date.toLocaleString(i18n.language == "de" ? "de-CH" : "en-UK", { month: 'long' });
 };
 
+export const getWeekMonthRange = (firstDate: Date, lastDate: Date): string => {
+  const sameMonth = firstDate.getMonth() === lastDate.getMonth() &&
+    firstDate.getFullYear() === lastDate.getFullYear();
+
+  if (sameMonth) {
+    return `${getMonthName(firstDate)} ${firstDate.getFullYear().toString()}`;
+  }
+
+  return `${getMonthName(firstDate)} / ${getMonthName(lastDate)} ${lastDate.getFullYear().toString()}`;
+};
+
 
 export const getMonthDates = (date: Date): { date: Date | null; isEmpty: boolean }[] => {
   const year = date.getFullYear();

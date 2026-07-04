@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Shift, Task, RosterEntry } from '../types';
 import api, { dayCommentApi } from '../data/api';
-import { getWeekDates, formatDate, isToday, getDayName, getMonthName } from '../utils/dateUtils';
+import { getWeekDates, formatDate, isToday, getDayName, getWeekMonthRange } from '../utils/dateUtils';
 import { getTaskIcon } from '../utils/iconUtils';
 import Legend from '../components/Legend';
 
@@ -509,7 +509,7 @@ const Roster: React.FC = () => {
               <ChevronLeft size={18} />
             </button>
             <span className="roster-title">
-              {getMonthName(weekDates[0])} {weekDates[0].getFullYear().toString()}
+              {getWeekMonthRange(weekDates[0], weekDates[6])}
             </span>
             <button className="btn btn-secondary" onClick={() => navigateWeek(1)}>
               <ChevronRight size={18} />
