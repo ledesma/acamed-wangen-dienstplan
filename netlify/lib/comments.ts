@@ -1,6 +1,4 @@
-import { getDatabase } from '@netlify/database';
-
-const db = getDatabase();
+import { sql } from './db';
 
 export interface DayCommentWithUsers {
   global: string;
@@ -8,7 +6,7 @@ export interface DayCommentWithUsers {
 }
 
 export const getDayComments = async (): Promise<Record<string, DayCommentWithUsers>> => {
-  const rows = await db.sql`
+  const rows = await sql`
     SELECT date::text as date, comment, user_id FROM day_comments ORDER BY date
   `;
   const result: Record<string, DayCommentWithUsers> = {};
@@ -30,12 +28,12 @@ export const getDayComments = async (): Promise<Record<string, DayCommentWithUse
 
 export const getDayComment = async (date: string, userId?: string) => {
   if (userId) {
-    const result = await db.sql`
+    const result = await sql`
       SELECT date, comment FROM day_comments WHERE date = ${date}::date AND user_id = ${userId}
     `;
     return result[0] || null;
   }
-  const result = await db.sql`
+  const result = await sql`
     SELECT date, comment FROM day_comments WHERE date = ${date}::date AND user_id IS NULL
   `;
   return result[0] || null;
@@ -45,13 +43,13 @@ export const upsertDayComment = async (date: string, comment: string, userId?: s
   const id = userId ? `${date}-${userId}-comment` : `${date}-comment`;
 
   if (userId) {
-    return await db.sql.unsafe(
+    return await sql.unsafe(
       'INSERT INTO day_comments (id, date, comment, user_id) VALUES ($1, $2, $3, $4) ON CONFLICT (date, user_id) DO UPDATE SET comment = EXCLUDED.comment RETURNING id, date, comment, user_id',
       [id, date, comment, userId]
     );
   }
 
-  const updateResult = await db.sql.unsafe(
+  const updateResult = await sql.unsafe(
     'UPDATE day_comments SET comment = $1 WHERE date = $2 AND user_id IS NULL RETURNING id, date, comment, user_id',
     [comment, date]
   );
@@ -60,7 +58,7 @@ export const upsertDayComment = async (date: string, comment: string, userId?: s
     return updateResult;
   }
 
-  return await db.sql.unsafe(
+  return await sql.unsafe(
     'INSERT INTO day_comments (id, date, comment, user_id) VALUES ($1, $2, $3, NULL) RETURNING id, date, comment, user_id',
     [id, date, comment]
   );
@@ -68,12 +66,12 @@ export const upsertDayComment = async (date: string, comment: string, userId?: s
 
 export const deleteDayComment = async (date: string, userId?: string) => {
   if (userId) {
-    return await db.sql.unsafe(
+    return await sql.unsafe(
       'DELETE FROM day_comments WHERE date = $1 AND user_id = $2',
       [date, userId]
     );
   }
-  return await db.sql.unsafe(
+  return await sql.unsafe(
     'DELETE FROM day_comments WHERE date = $1 AND user_id IS NULL',
     [date]
   );

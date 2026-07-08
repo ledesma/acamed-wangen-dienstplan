@@ -1,9 +1,7 @@
-import { getDatabase } from '@netlify/database';
-
-const db = getDatabase();
+import { sql } from './db';
 
 export const getTasks = async () => {
-  return await db.sql`
+  return await sql`
     SELECT id, name, icon, is_active
     FROM tasks
     ORDER BY name
@@ -11,7 +9,7 @@ export const getTasks = async () => {
 };
 
 export const getTaskById = async (id: string) => {
-  const result = await db.sql`
+  const result = await sql`
     SELECT id, name, icon, is_active
     FROM tasks WHERE id = ${id}
   `;
@@ -24,7 +22,7 @@ export const createTask = async (data: {
   icon: string;
   is_active?: boolean;
 }) => {
-  return await db.sql`
+  return await sql`
     INSERT INTO tasks (id, name, icon, is_active)
     VALUES (${data.id}, ${data.name}, ${data.icon}, ${data.is_active !== false})
     RETURNING id, name, icon, is_active
@@ -32,7 +30,7 @@ export const createTask = async (data: {
 };
 
 export const updateTaskName = async (id: string, name: string) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE tasks SET name = ${name} WHERE id = ${id}
     RETURNING id, name, icon, is_active
   `;
@@ -40,7 +38,7 @@ export const updateTaskName = async (id: string, name: string) => {
 };
 
 export const updateTaskIcon = async (id: string, icon: string) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE tasks SET icon = ${icon} WHERE id = ${id}
     RETURNING id, name, icon, is_active
   `;
@@ -48,7 +46,7 @@ export const updateTaskIcon = async (id: string, icon: string) => {
 };
 
 export const updateTaskActive = async (id: string, isActive: boolean) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE tasks SET is_active = ${isActive} WHERE id = ${id}
     RETURNING id, name, icon, is_active
   `;
@@ -56,7 +54,7 @@ export const updateTaskActive = async (id: string, isActive: boolean) => {
 };
 
 export const deleteTask = async (id: string) => {
-  return await db.sql`DELETE FROM tasks WHERE id = ${id}`;
+  return await sql`DELETE FROM tasks WHERE id = ${id}`;
 };
 
 export const updateTask = async (id: string, updates: {
