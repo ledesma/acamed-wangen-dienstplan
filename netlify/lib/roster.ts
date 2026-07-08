@@ -1,9 +1,7 @@
-import { getDatabase } from '@netlify/database';
-
-const db = getDatabase();
+import { sql } from './db';
 
 export const getRosterEntries = async (from: string, to: string) => {
-  const rows = await db.sql`
+  const rows = await sql`
     SELECT id, user_id, date::text as date, shift_id, active_task_ids, comment
     FROM roster_entries
     WHERE date >= ${from} AND date <= ${to}
@@ -16,7 +14,7 @@ export const getRosterEntries = async (from: string, to: string) => {
 };
 
 export const getRosterEntryById = async (id: string) => {
-  const result = await db.sql`
+  const result = await sql`
     SELECT id, user_id, date::text as date, shift_id, active_task_ids, comment
     FROM roster_entries WHERE id = ${id}
   `;
@@ -28,7 +26,7 @@ export const getRosterEntryById = async (id: string) => {
 };
 
 export const getRosterEntryByUserAndDate = async (userId: string, date: string) => {
-  const result = await db.sql`
+  const result = await sql`
     SELECT id, user_id, date::text as date, shift_id, active_task_ids, comment
     FROM roster_entries WHERE user_id = ${userId} AND date = ${date}::date
   `;
@@ -47,7 +45,7 @@ export const createRosterEntry = async (data: {
   active_task_ids: string[];
   comment?: string;
 }) => {
-  return await db.sql`
+  return await sql`
     INSERT INTO roster_entries (id, user_id, date, shift_id, active_task_ids, comment)
     VALUES (${data.id}, ${data.user_id}, ${data.date}::date, ${data.shift_id || null}, ${data.active_task_ids}, ${data.comment || null})
     ON CONFLICT (user_id, date) DO UPDATE SET
@@ -59,7 +57,7 @@ export const createRosterEntry = async (data: {
 };
 
 export const updateRosterEntryShift = async (id: string, shiftId: string | null) => {
-  const result = await db.sql.unsafe(
+  const result = await sql.unsafe(
     'UPDATE roster_entries SET shift_id = $1 WHERE id = $2 RETURNING id, user_id, date, shift_id, active_task_ids, comment',
     [shiftId, id]
   );
@@ -67,7 +65,7 @@ export const updateRosterEntryShift = async (id: string, shiftId: string | null)
 };
 
 export const updateRosterEntryTasks = async (id: string, activeTaskIds: string[]) => {
-  const result = await db.sql.unsafe(
+  const result = await sql.unsafe(
     'UPDATE roster_entries SET active_task_ids = $1 WHERE id = $2 RETURNING id, user_id, date, shift_id, active_task_ids, comment',
     [activeTaskIds, id]
   );
@@ -75,7 +73,7 @@ export const updateRosterEntryTasks = async (id: string, activeTaskIds: string[]
 };
 
 export const updateRosterEntryComment = async (id: string, comment: string) => {
-  const result = await db.sql.unsafe(
+  const result = await sql.unsafe(
     'UPDATE roster_entries SET comment = $1 WHERE id = $2 RETURNING id, user_id, date, shift_id, active_task_ids, comment',
     [comment, id]
   );
@@ -83,7 +81,7 @@ export const updateRosterEntryComment = async (id: string, comment: string) => {
 };
 
 export const updateRosterEntryShiftAndTasks = async (id: string, shiftId: string | null, activeTaskIds: string[]) => {
-  const result = await db.sql.unsafe(
+  const result = await sql.unsafe(
     'UPDATE roster_entries SET shift_id = $1, active_task_ids = $2 WHERE id = $3 RETURNING id, user_id, date, shift_id, active_task_ids, comment',
     [shiftId, activeTaskIds, id]
   );
@@ -91,7 +89,7 @@ export const updateRosterEntryShiftAndTasks = async (id: string, shiftId: string
 };
 
 export const deleteRosterEntry = async (id: string) => {
-  return await db.sql`DELETE FROM roster_entries WHERE id = ${id}`;
+  return await sql`DELETE FROM roster_entries WHERE id = ${id}`;
 };
 
 export const updateRosterEntry = async (id: string, updates: {

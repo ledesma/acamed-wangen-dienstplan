@@ -1,11 +1,9 @@
-import { getDatabase } from '@netlify/database';
+import { sql } from './db';
 import { admin, getIdentityConfig } from '@netlify/identity';
 import axios from 'axios';
 
-const db = getDatabase();
-
 export const getUsers = async () => {
-  return await db.sql`
+  return await sql`
     SELECT id, name, email, roles, created_at, invite_sent, display_order
     FROM users
     ORDER BY display_order ASC, name ASC
@@ -27,21 +25,22 @@ export const getFullUsers = async () => {
   return users;
 };
 
+// NOTE: rewritten from raw BEGIN/COMMIT/ROLLBACK to sql.begin(). With a
+// pooled connection (e.g. Supabase's transaction pooler), separate
+// db.sql`BEGIN` / `COMMIT` calls are NOT guaranteed to run on the same
+// underlying connection, which silently breaks the transaction's atomicity.
+// sql.begin() reserves one connection for the whole callback, which is safe
+// even against pgbouncer in transaction mode.
 export const reorderUsers = async (orderedUserIds: string[]) => {
-  await db.sql`BEGIN`;
-  try {
+  await sql.begin(async (sql) => {
     for (let i = 0; i < orderedUserIds.length; i++) {
-      await db.sql`UPDATE users SET display_order = ${i} WHERE id = ${orderedUserIds[i]}`;
+      await sql`UPDATE users SET display_order = ${i} WHERE id = ${orderedUserIds[i]}`;
     }
-    await db.sql`COMMIT`;
-  } catch (e) {
-    await db.sql`ROLLBACK`;
-    throw e;
-  }
+  });
 };
 
 export const updateDisplayOrder = async (id: string, order: number) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE users SET display_order = ${order} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent, display_order
   `;
@@ -49,7 +48,7 @@ export const updateDisplayOrder = async (id: string, order: number) => {
 };
 
 export const getUserById = async (id: string) => {
-  const result = await db.sql`
+  const result = await sql`
     SELECT id, name, email, roles, created_at, invite_sent
     FROM users WHERE id = ${id}
   `;
@@ -57,7 +56,7 @@ export const getUserById = async (id: string) => {
 };
 
 export const getUserByEmail = async (email: string) => {
-  const result = await db.sql`
+  const result = await sql`
     SELECT id, name, email, roles, created_at, invite_sent
     FROM users WHERE email = ${email}
   `;
@@ -72,7 +71,7 @@ export const createUser = async (data: {
   inviteSent?: boolean;
   displayOrder?: number;
 }) => {
-  return await db.sql`
+  return await sql`
     INSERT INTO users (id, name, email, roles, invite_sent, display_order)
     VALUES (${data.id}, ${data.name}, ${data.email}, ${data.roles}, ${data.inviteSent || false}, ${data.displayOrder || 0})
     RETURNING id, name, email, roles, created_at, invite_sent, display_order
@@ -104,7 +103,7 @@ export const inviteUser = async (name: string, email: string, roles: string[]) =
     console.warn(`[invite-user] Failed to send invite: ${err.message}`);
   }
 
-  const maxOrderResult = await db.sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
+  const maxOrderResult = await sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
   const nextOrder = (maxOrderResult[0] as any).max_order + 1;
 
   const newUser = {
@@ -128,7 +127,7 @@ export const inviteUser = async (name: string, email: string, roles: string[]) =
 };
 
 export const updateUserName = async (id: string, name: string) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE users SET name = ${name} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent
   `;
@@ -136,7 +135,7 @@ export const updateUserName = async (id: string, name: string) => {
 };
 
 export const updateUserEmail = async (id: string, email: string) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE users SET email = ${email} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent
   `;
@@ -144,7 +143,7 @@ export const updateUserEmail = async (id: string, email: string) => {
 };
 
 export const updateUserRoles = async (id: string, roles: string[]) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE users SET roles = ${roles} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent
   `;
@@ -152,7 +151,7 @@ export const updateUserRoles = async (id: string, roles: string[]) => {
 };
 
 export const updateUserInviteSent = async (id: string, inviteSent: boolean) => {
-  const result = await db.sql`
+  const result = await sql`
     UPDATE users SET invite_sent = ${inviteSent} WHERE id = ${id}
     RETURNING id, name, email, roles, created_at, invite_sent
   `;
@@ -223,7 +222,7 @@ export const updateUser = async (id: string, updates: {
 };
 
 export const deleteUser = async (id: string) => {
-  return await db.sql`DELETE FROM users WHERE id = ${id}`;
+  return await sql`DELETE FROM users WHERE id = ${id}`;
 };
 
 export const syncIdentityUser = async (identityUser: any) => {
@@ -232,7 +231,7 @@ export const syncIdentityUser = async (identityUser: any) => {
   const existingUser = await getUserByEmail(email);
 
   if (!existingUser) {
-    const maxOrderResult = await db.sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
+    const maxOrderResult = await sql`SELECT COALESCE(MAX(display_order), 0) AS max_order FROM users`;
     const nextOrder = (maxOrderResult[0] as any).max_order + 1;
 
     const newUser = {
