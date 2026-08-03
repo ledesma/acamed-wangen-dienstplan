@@ -32,7 +32,7 @@ npm install
 ### Development
 
 ```bash
-npm run dev
+netlify dev
 ```
 
 ### Build
@@ -47,21 +47,17 @@ npm run build
 npm test
 ```
 
-## Netlify Deployment
+## Deployment
 
-1. Create a Netlify site:
-   ```bash
-   netlify init
-   ```
+Netlify deployments are done automatically via merge into main in github.
 
-2. Enable Identity:
-   - Go to Netlify Dashboard → Site Settings → Identity
-   - Enable Identity
-   - Enable Git Gateway
+## Database deployments (Supabase)
 
-3. For local development with Netlify:
-   - Create a `.env` file with your Netlify site URL
-   - Or use `netlify dev` to run locally with Netlify functions
+Database migration is executed with `npm run db:migrate` and are bound to the netlify build command.
+Migration files are in `/database/migrations`. These are SQL files and executed in alphabetical order.
+
+
+
 
 ## Data Models
 
@@ -73,7 +69,6 @@ npm test
 ## Routes
 
 - `/login` - Login page
-- `/register` - Registration page
 - `/roster` - Team roster (week view)
 - `/my-roster` - Personal roster (month/list)
 - `/admin/users` - Users management

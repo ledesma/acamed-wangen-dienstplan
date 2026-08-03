@@ -1,9 +1,13 @@
-import type { Context } from '@netlify/functions';
+import type { Config, Context } from '@netlify/functions';
 import { getTasks } from '../lib/tasks';
 import { getShifts } from '../lib/shifts';
 import { getRosterEntries } from '../lib/roster';
 import { getUsers } from '../lib/users';
 import { generateICS } from '../lib/ics';
+
+export const config: Config = {
+  path: '/my-roster-ics',
+};
 
 const headers: Record<string, string> = {
   'Content-Type': 'text/calendar; charset=utf-8',
@@ -32,8 +36,14 @@ export default async (req: Request, _context: Context) => {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
-    const from = url.searchParams.get('from') || undefined;
-    const to = url.searchParams.get('to') || undefined;
+    const now = new Date();
+    const defaultFrom = new Date(now);
+    defaultFrom.setDate(now.getDate() - 7);
+    const defaultTo = new Date(now);
+    defaultTo.setDate(now.getDate() + 30);
+
+    const from = url.searchParams.get('from') || defaultFrom.toISOString().slice(0, 10);
+    const to = url.searchParams.get('to') || defaultTo.toISOString().slice(0, 10);
     const rosterEntries = await getRosterEntries(from, to);
     const shifts = await getShifts();
     const tasks = await getTasks();
