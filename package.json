@@ -11,7 +11,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node database/migrate.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
