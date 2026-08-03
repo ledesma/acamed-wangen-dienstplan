@@ -1,8 +1,28 @@
-const formatICSDateTime = (dateStr: string): string => {
-  return dateStr.replace(/-/g, '') + 'T000000';
+export interface DayCommentWithUsers {
+  global: string;
+  employees: Record<string, string>;
+}
+
+const escapeICSText = (text: string): string =>
+  text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+
+const addDays = (dateStr: string, days: number): string => {
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 };
 
-export const generateICS = (user: any, rosterEntries: any[], shifts: any[], tasks: any[]): string => {
+export const generateICS = (
+  user: any,
+  rosterEntries: any[],
+  shifts: any[],
+  tasks: any[],
+  dayComments: Record<string, DayCommentWithUsers> = {}
+): string => {
   const userEntries = rosterEntries
     .filter((e: any) => e.user_id === user.id)
     .sort((a: any, b: any) => a.date.localeCompare(b.date));
@@ -41,27 +61,48 @@ export const generateICS = (user: any, rosterEntries: any[], shifts: any[], task
       .map((id: string) => tasks.find((t: any) => t.id === id))
       .filter(Boolean);
 
+    const dayComment = dayComments[entry.date];
+    const globalComment = dayComment?.global || '';
+    const userComment = dayComment?.employees?.[entry.user_id] || '';
+
+    const description = [
+      entryTasks.map((t: any) => t.name).join(', '),
+      globalComment,
+      userComment
+    ].filter(Boolean).join('\n\n');
+
     const dateStr = entry.date.replace(/-/g, '');
-    const uid = `${entry.id}-acamed-calendar`;
+    const timeBlocks: Array<{ from: string; to: string } | null> =
+      shift.times && shift.times.length > 0 ? shift.times : [null];
 
-    lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${uid}`);
-    lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`);
-    lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
-    lines.push(`DTEND;VALUE=DATE:${dateStr}`);
-    lines.push(`SUMMARY:${shift.name}`);
+    timeBlocks.forEach((block, index) => {
+      const uid = block
+        ? `${entry.id}-${index}-acamed-calendar`
+        : `${entry.id}-acamed-calendar`;
 
-    const description = [shift.times.map((t: any) => `${t.from} - ${t.to}`).join('; '), entryTasks.map((t: any) => t.name).join('; ')].filter(Boolean).join('\n');
-    if (description) {
-      lines.push(`DESCRIPTION:${description}`);
-    }
+      lines.push('BEGIN:VEVENT');
+      lines.push(`UID:${uid}`);
+      lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`);
 
-    if (shift.color) {
-      lines.push(`COLOR:RGB`);
-      lines.push(`X-APPLE-TRAVEL-REMINDER;VALUE=BOOLEAN:TRUE`);
-    }
+      if (block) {
+        const fromCompact = `${block.from.replace(':', '')}00`;
+        const toCompact = `${block.to.replace(':', '')}00`;
+        const toDateStr = block.to <= block.from ? addDays(entry.date, 1).replace(/-/g, '') : dateStr;
 
-    lines.push('END:VEVENT');
+        lines.push(`DTSTART;TZID=Europe/Berlin:${dateStr}T${fromCompact}`);
+        lines.push(`DTEND;TZID=Europe/Berlin:${toDateStr}T${toCompact}`);
+      } else {
+        lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
+        lines.push(`DTEND;VALUE=DATE:${dateStr}`);
+      }
+
+      lines.push(`SUMMARY:${escapeICSText(shift.name)}`);
+      if (description) {
+        lines.push(`DESCRIPTION:${escapeICSText(description)}`);
+      }
+
+      lines.push('END:VEVENT');
+    });
   }
 
   lines.push('END:VCALENDAR');

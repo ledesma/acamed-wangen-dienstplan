@@ -3,6 +3,7 @@ import { getTasks } from '../lib/tasks';
 import { getShifts } from '../lib/shifts';
 import { getRosterEntries } from '../lib/roster';
 import { getUsers } from '../lib/users';
+import { getDayComments } from '../lib/comments';
 import { generateICS } from '../lib/ics';
 
 export const config: Config = {
@@ -47,8 +48,9 @@ export default async (req: Request, _context: Context) => {
     const rosterEntries = await getRosterEntries(from, to);
     const shifts = await getShifts();
     const tasks = await getTasks();
+    const dayComments = await getDayComments();
 
-    const icsContent = generateICS(user, rosterEntries, shifts, tasks);
+    const icsContent = generateICS(user, rosterEntries, shifts, tasks, dayComments);
     return new Response(icsContent, { status: 200, headers });
   } catch (error: any) {
     console.error('[ics] Error:', error);
