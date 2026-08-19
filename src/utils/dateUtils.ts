@@ -107,5 +107,6 @@ export const formatTimeRange = (from: string, to: string): string => {
 };
 
 export const formatShiftTimes = (times: { from: string; to: string }[]): string => {
+  if (!Array.isArray(times)) return '';
   return times.map(t => formatTimeRange(t.from, t.to)).join(', ');
 };
