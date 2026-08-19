@@ -26,7 +26,7 @@ export const createShift = async (data: {
 }) => {
   return await sql`
     INSERT INTO shifts (id, name, times, default_task_ids, color, is_active)
-    VALUES (${data.id}, ${data.name}, ${JSON.stringify(data.times)}, ${data.default_task_ids}, ${data.color}, ${data.is_active !== false})
+    VALUES (${data.id}, ${data.name}, ${sql.json(data.times)}, ${data.default_task_ids}, ${data.color}, ${data.is_active !== false})
     RETURNING id, name, times, default_task_ids, color, is_active
   `;
 };
@@ -41,7 +41,7 @@ export const updateShiftName = async (id: string, name: string) => {
 
 export const updateShiftTimes = async (id: string, times: any[]) => {
   const result = await sql`
-    UPDATE shifts SET times = ${JSON.stringify(times)} WHERE id = ${id}
+    UPDATE shifts SET times = ${sql.json(times)} WHERE id = ${id}
     RETURNING id, name, times, default_task_ids, color, is_active
   `;
   return result[0] || null;
