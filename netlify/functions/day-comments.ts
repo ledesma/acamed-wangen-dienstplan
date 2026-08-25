@@ -1,6 +1,7 @@
 import type { Context } from '@netlify/functions';
 import { getDayComments, upsertDayComment, deleteDayComment } from '../lib/comments';
 import { getUserFromRequest, requireAdmin } from '../lib/auth';
+import { getUserByEmail } from '../lib/users';
 
 const headers: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +26,25 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (req.method === 'GET') {
-      const comments = await getDayComments();
+      const url = new URL(req.url);
+      const from = url.searchParams.get('from') || undefined;
+      const to = url.searchParams.get('to') || undefined;
+      const personal = url.searchParams.get('personal') === 'true';
+
+      let scopedUserId: string | undefined;
+      if (personal) {
+        const requester = await getUserFromRequest(req);
+        if (!requester) {
+          return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401, headers });
+        }
+        const appUser = await getUserByEmail(requester.email);
+        if (!appUser) {
+          return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers });
+        }
+        scopedUserId = appUser.id;
+      }
+
+      const comments = await getDayComments(from, to, scopedUserId);
       return new Response(JSON.stringify(comments), { status: 200, headers });
     }
 

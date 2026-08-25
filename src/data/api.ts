@@ -183,8 +183,13 @@ export const api = {
 };
 
 export const dayCommentApi = {
-  async getComments() {
-    return apiFetch('/day-comments', { method: 'GET' });
+  async getComments(params?: { from?: string; to?: string; personal?: boolean }) {
+    const query = new URLSearchParams();
+    if (params?.from) query.set('from', params.from);
+    if (params?.to) query.set('to', params.to);
+    if (params?.personal) query.set('personal', 'true');
+    const qs = query.toString();
+    return apiFetch(`/day-comments${qs ? `?${qs}` : ''}`, { method: 'GET' });
   },
 
   async setComment(date: string, comment: string, userId?: string) {

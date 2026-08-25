@@ -5,9 +5,15 @@ export interface DayCommentWithUsers {
   employees: Record<string, string>;
 }
 
-export const getDayComments = async (): Promise<Record<string, DayCommentWithUsers>> => {
+export const getDayComments = async (
+  from?: string, to?: string, userId?: string
+): Promise<Record<string, DayCommentWithUsers>> => {
   const rows = await sql`
-    SELECT date::text as date, comment, user_id FROM day_comments ORDER BY date
+    SELECT date::text as date, comment, user_id FROM day_comments
+    WHERE 1=1
+    ${from && to ? sql`AND date >= ${from} AND date <= ${to}` : sql``}
+    ${userId ? sql`AND (user_id IS NULL OR user_id = ${userId})` : sql``}
+    ORDER BY date
   `;
   const result: Record<string, DayCommentWithUsers> = {};
   for (const row of rows) {

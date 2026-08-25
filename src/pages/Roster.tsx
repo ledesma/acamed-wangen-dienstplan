@@ -313,7 +313,6 @@ const Roster: React.FC = () => {
 
   useEffect(() => {
     refreshUsers();
-    loadData(weekDates[0], weekDates[weekDates.length - 1]);
   }, []);
 
   useEffect(() => {
@@ -328,7 +327,7 @@ const Roster: React.FC = () => {
         api.getShifts(),
         api.getTasks(),
         api.getRosterEntries(formatDate(weekStart), formatDate(weekEnd)),
-        dayCommentApi.getComments()
+        dayCommentApi.getComments({ from: formatDate(weekStart), to: formatDate(weekEnd) })
       ]);
       setShifts(shiftsData);
       setTasks(tasksData);

@@ -27,18 +27,18 @@ const PersonalRoster: React.FC = () => {
 
   React.useEffect(() => {
     refreshUsers();
-    loadDayComments();
   }, []);
 
   React.useEffect(() => {
     const monthStart = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
     const monthEnd = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
     refresh(monthStart, monthEnd);
+    loadDayComments(monthStart, monthEnd);
   }, [currentDate]);
 
-  const loadDayComments = async () => {
+  const loadDayComments = async (from: string, to: string) => {
     try {
-      const comments = await dayCommentApi.getComments();
+      const comments = await dayCommentApi.getComments({ from, to, personal: true });
       setDayComments(comments || {});
     } catch {
       // ignore errors
@@ -275,7 +275,7 @@ const PersonalRoster: React.FC = () => {
               <div key={`${fn.date}-${fn.userId || 'global'}`} className="footnote-item">
                 <span className="footnote-number">{fn.index})</span>
                 <span className="footnote-date">{new Date(fn.date + 'T00:00:00').toLocaleDateString('de-CH', { weekday: 'short', day: 'numeric', month: 'long' })}:</span>
-                {fn.userId || (
+                {!fn.userId && (
                   <span className="footnote-user">{t('footnoteGlobalPrefix')}</span>
                 )}
                 <span className="footnote-text"> {fn.comment}</span>
