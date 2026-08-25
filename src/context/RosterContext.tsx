@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { RosterEntry, Shift, Task } from '../types';
 import api from '../data/api';
 import { formatShiftTimes } from '../utils/dateUtils';
@@ -29,16 +29,6 @@ export const RosterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setShifts(shiftsData);
     setTasks(tasksData);
   };
-
-  useEffect(() => {
-    const today = new Date();
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    refresh(
-      `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-${String(monthStart.getDate()).padStart(2, '0')}`,
-      `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, '0')}-${String(monthEnd.getDate()).padStart(2, '0')}`
-    );
-  }, []);
 
   const exportICS = (user: { name: string; id: string }) => {
     const userEntries = rosterEntries.filter(e => e.user_id === user.id);
